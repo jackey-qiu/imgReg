@@ -1,0 +1,1 @@
+%CONDA_PYTHON_ENV%\Lib\site-packages\PySide\pyside-rcc.exe %IMREGDESY%\src\ui\resources_icon_library.qrc -o %IMREGDESY%\src\ui\resources_icon_library.py

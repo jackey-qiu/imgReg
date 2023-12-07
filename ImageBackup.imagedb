@@ -1,0 +1,26 @@
+<?xml version='1.0' encoding='WINDOWS-1252'?>
+<ImageMap>
+  <Image0>
+    <Filename>structure.png</Filename>
+    <Opacity>50</Opacity>
+    <Visible>TRUE</Visible>
+    <Rotation>0.0</Rotation>
+    <Center>50000.0,50000.0</Center>
+    <Size>1013.0,1050.0</Size>
+    <Focus>-0.5</Focus>
+    <BaseFolder>C:/Users/qiucanro/Desktop/hematite</BaseFolder>
+  </Image0>
+  <Image1>
+    <Filename>structure2(1).png</Filename>
+    <Opacity>60</Opacity>
+    <Visible>TRUE</Visible>
+    <Rotation>674.9440408659736</Rotation>
+    <Center>50233.985426295025,49779.423901716276</Center>
+    <Size>840.6037857926567,840.6037857930351</Size>
+    <Focus>-0.5</Focus>
+    <BaseFolder>C:/Users/qiucanro/Desktop/hematite</BaseFolder>
+  </Image1>
+  <Data>
+    <ImageCount>2</ImageCount>
+  </Data>
+</ImageMap>
