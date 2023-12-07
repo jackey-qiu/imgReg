@@ -3,11 +3,15 @@
 
 # // module to manage the field view
 # from ui.workspace_widget import Ui_workspace_widget
-from ui.workspace_widget_new2 import Ui_workspace_widget
+import sys, os
+from pathlib import Path
 import numpy as np
 import pyqtgraph as pg
 import pyqtgraph.functions as fn
-from PySide6 import QtGui, QtCore, QtWidgets
+from PyQt5 import QtGui, QtCore, QtWidgets, uic
+from PyQt5.QtWidgets import QMainWindow, QApplication
+from PyQt5.QtCore import pyqtSignal as Signal
+from PyQt5.QtCore import pyqtSlot as Slot
 from settings_unit import ScaleBar
 from geometry_unit import geometry_dialog
 from field_dft_registration import mdi_field_imreg_show
@@ -16,32 +20,9 @@ from field_fiducial_markers_unit import FiducialMarkerWidget
 from field_tools import FieldViewBox
 from utility_widgets import check_true
 from importmodule import load_im_xml, load_align_xml
-import sys
-import os
 
-from PySide6.QtUiTools import QUiLoader
-from PySide6.QtCore import QMetaObject
-
-class UiLoader(QUiLoader):
-    def __init__(self, base_instance):
-        QUiLoader.__init__(self, base_instance)
-        self.base_instance = base_instance
-
-    def createWidget(self, class_name, parent=None, name=''):
-        if parent is None and self.base_instance:
-            return self.base_instance
-        else:
-            # create a new widget for child widgets
-            widget = QUiLoader.createWidget(self, class_name, parent, name)
-            if self.base_instance:
-                setattr(self.base_instance, name, widget)
-            return widget
-
-def load_ui(ui_file, base_instance=None):
-    loader = UiLoader(base_instance)
-    widget = loader.load(ui_file)
-    QMetaObject.connectSlotsByName(widget)
-    return widget
+setting_file = str(Path(__file__).parent.parent.parent / 'config' / 'appsettings.ini')
+ui_file_folder = Path(__file__).parent.parent / 'ui'
 
 def quick_level(data):
     while data.size > 1e6:
@@ -60,49 +41,27 @@ def quick_min_max(data):
         data = data[sl]
     return nanmin(data), nanmax(data)
 
-def mainwindow_show():
-    """
-    Show the mdi field
-    :param self:
-    :return:
-    """
-    # // launching the app
-    if QtWidgets.QApplication.instance():
-        app = QtWidgets.QApplication.instance()
-    else:
-        app = QtWidgets.QApplication(sys.argv)
-    settings_path = os.path.join(os.path.dirname(__file__),"appsettings.ini")
-    if not os.path.exists(settings_path):
-        raise AssertionError("Settings file does not exist")
-    settings_object = QtCore.QSettings(settings_path, QtCore.QSettings.IniFormat)
-    
-    workspace = WorkSpace(settings_object)
-    workspace.imageBuffer.recallImgBackup()
-
-    return app, workspace
-
-# class WorkSpace(QtWidgets.QWidget):
-class WorkSpace(QtWidgets.QWidget, Ui_workspace_widget):
+class WorkSpace(QMainWindow):
     """
     Main class of the workspace
     """
-    statusMessage_sig = QtCore.Signal(str)
-    progressUpdate_sig = QtCore.Signal(float)
-    logMessage_sig = QtCore.Signal(dict)
-    switch_selection_sig = QtCore.Signal(str)
+    statusMessage_sig = Signal(str)
+    progressUpdate_sig = Signal(float)
+    logMessage_sig = Signal(dict)
+    switch_selection_sig = Signal(str)
 
-    def __init__(self, settings_object):
+    def __init__(self, parent = None):
         """
         Initialize the class
         :param parent: parent widget
         :param settings_object: settings object
         """
-        super(WorkSpace, self).__init__(None)
-        self.setupUi(self)
+        super(WorkSpace, self).__init__(parent)
+        uic.loadUi(str(ui_file_folder / 'img_reg_main_window.ui'), self)
         self.setMinimumSize(800, 600)
         self.widget_terminal.update_name_space('gui', self)
         self._parent = self
-        self.settings_object = settings_object
+        self.settings_object = QtCore.QSettings(setting_file, QtCore.QSettings.IniFormat)
 
         self.img_backup_path = "ImageBackup.imagedb"
         self.zoomfactor_relative_to_cam = 0
@@ -126,7 +85,7 @@ class WorkSpace(QtWidgets.QWidget, Ui_workspace_widget):
         action.setDefaultWidget(self.bt_align)
         self.bt_alignMenu.menu().addAction(action)
         icon1 = QtGui.QIcon()
-        icon1.addPixmap(QtGui.QPixmap(":/Viewing/icons/Viewing/coordinates_128x128.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon1.addPixmap(QtGui.QPixmap(str(ui_file_folder / 'icons' / 'Viewing' / 'coordinates_128x128.png')), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.bt_align.setIcon(icon1)
         self.bt_align.setIconSize(QtCore.QSize(32, 32))
         self.bt_align.setText("Align images")
@@ -137,7 +96,7 @@ class WorkSpace(QtWidgets.QWidget, Ui_workspace_widget):
         action.setDefaultWidget(self.bt_dft_registration)
         self.bt_alignMenu.menu().addAction(action)
         icon1 = QtGui.QIcon()
-        icon1.addPixmap(QtGui.QPixmap(":/Viewing/icons/Viewing/coordinates_128x128.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon1.addPixmap(QtGui.QPixmap(str(ui_file_folder / 'icons' / 'Viewing' / 'coordinates_128x128.png')), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.bt_dft_registration.setIcon(icon1)
         self.bt_dft_registration.setIconSize(QtCore.QSize(32, 32))
         self.bt_dft_registration.setText("DFT position refinement")
@@ -148,7 +107,7 @@ class WorkSpace(QtWidgets.QWidget, Ui_workspace_widget):
         action.setDefaultWidget(self.bt_fiducial_markers)
         self.bt_alignMenu.menu().addAction(action)
         icon1 = QtGui.QIcon()
-        icon1.addPixmap(QtGui.QPixmap(":/Viewing/icons/Viewing/coordinates_128x128.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon1.addPixmap(QtGui.QPixmap(str(ui_file_folder / 'icons' / 'Viewing' / 'coordinates_128x128.png')), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.bt_fiducial_markers.setIcon(icon1)
         self.bt_fiducial_markers.setIconSize(QtCore.QSize(32, 32))
         self.bt_fiducial_markers.setText("Add fiducial markers")
@@ -242,9 +201,8 @@ class WorkSpace(QtWidgets.QWidget, Ui_workspace_widget):
         # // draw scalebar
         self.draw_scalebar()
         self.connect_slots()
-
+        self.imageBuffer.recallImgBackup()
         
-
     def set_cursor_icon(self, cursor_type="cross"):
         """
         Change the cursor icon
@@ -252,11 +210,11 @@ class WorkSpace(QtWidgets.QWidget, Ui_workspace_widget):
         :return:
         """
         if cursor_type == "cross":
-            cursor_custom = QtGui.QCursor(QtGui.QPixmap(":/Cursors/icons/Cursors/target_cursor_32x32.png"))
+            cursor_custom = QtGui.QCursor(QtGui.QPixmap(str(ui_file_folder / 'icons' / 'Cursors' / 'target_cursor_32x32.png')))
         elif cursor_type == "pen":
             cursor_custom = QtGui.QCursor(QtGui.QPixmap(":/icon/cursor_pen.png"), hotX=26, hotY=23)
         elif cursor_type == "align":
-            cursor_custom = QtGui.QCursor(QtGui.QPixmap(":/Cursors/icons/Cursors/registration_cursor_32x32.png"), hotX=26, hotY=23)
+            cursor_custom = QtGui.QCursor(QtGui.QPixmap(str(ui_file_folder / 'icons' / 'Cursors' / "registration_cursor_32x32.png")), hotX=26, hotY=23)
         self.graphicsView_field.setCursor(cursor_custom)
 
     def connect_slots(self):
@@ -271,7 +229,7 @@ class WorkSpace(QtWidgets.QWidget, Ui_workspace_widget):
         action.setDefaultWidget(self.bt_delete)
         self.bt_removeMenu.menu().addAction(action)
         icon1 = QtGui.QIcon()
-        icon1.addPixmap(QtGui.QPixmap(":/FileSystem/icons/FileSystem/close_file_128x128.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon1.addPixmap(QtGui.QPixmap(str(ui_file_folder / 'icons' / 'FileSystem' / 'close_file_128x128.png')), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.bt_delete.setIcon(icon1)
         self.bt_delete.setIconSize(QtCore.QSize(32, 32))
         self.bt_delete.setText("Delete Selected Images")
@@ -281,7 +239,7 @@ class WorkSpace(QtWidgets.QWidget, Ui_workspace_widget):
         action.setDefaultWidget(self.bt_clear_tbl)
         self.bt_removeMenu.menu().addAction(action)
         icon1 = QtGui.QIcon()
-        icon1.addPixmap(QtGui.QPixmap(":/FileSystem/icons/FileSystem/close_file_128x128.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon1.addPixmap(QtGui.QPixmap(str(ui_file_folder / 'icons' / 'FileSystem' / 'close_file_128x128.png')), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.bt_clear_tbl.setIcon(icon1)
         self.bt_clear_tbl.setIconSize(QtCore.QSize(32, 32))
         self.bt_clear_tbl.setText("Clear workspace")
@@ -295,7 +253,7 @@ class WorkSpace(QtWidgets.QWidget, Ui_workspace_widget):
         action.setDefaultWidget(self.bt_recall_imagedb)
         self.bt_imageMenu.menu().addAction(action)
         icon1 = QtGui.QIcon()
-        icon1.addPixmap(QtGui.QPixmap(":/FileSystem/icons/FileSystem/open_folder_128x128.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon1.addPixmap(QtGui.QPixmap(str(ui_file_folder / 'icons' / 'FileSystem' / 'open_folder_128x128.png')), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.bt_recall_imagedb.setIcon(icon1)
         self.bt_recall_imagedb.setIconSize(QtCore.QSize(32, 32))
         self.bt_recall_imagedb.setText("Load Image Database")
@@ -306,7 +264,7 @@ class WorkSpace(QtWidgets.QWidget, Ui_workspace_widget):
         action.setDefaultWidget(self.bt_export_imagedb)
         self.bt_imageMenu.menu().addAction(action)
         icon1 = QtGui.QIcon()
-        icon1.addPixmap(QtGui.QPixmap(":/FileSystem/icons/FileSystem/save_as_128x128.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon1.addPixmap(QtGui.QPixmap(str(ui_file_folder / 'icons' / 'FileSystem' / 'save_as_128x128.png')), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.bt_export_imagedb.setIcon(icon1)
         self.bt_export_imagedb.setIconSize(QtCore.QSize(32, 32))
         self.bt_export_imagedb.setText("Save and export images")
@@ -317,7 +275,7 @@ class WorkSpace(QtWidgets.QWidget, Ui_workspace_widget):
         action.setDefaultWidget(self.bt_import_image)
         self.bt_imageMenu.menu().addAction(action)
         icon1 = QtGui.QIcon()
-        icon1.addPixmap(QtGui.QPixmap(":/FileSystem/icons/FileSystem/open_folder_128x128.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon1.addPixmap(QtGui.QPixmap(str(ui_file_folder / 'icons' / 'FileSystem' / 'open_folder_128x128.png')), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.bt_import_image.setIcon(icon1)
         self.bt_import_image.setText("Import image")
         self.bt_import_image.setIconSize(QtCore.QSize(32, 32))
@@ -1604,9 +1562,9 @@ class WorkArea(pg.GraphicsObject):
 
 
 class ImageBufferInfo(QtCore.QObject):
-    statusMessage_sig = QtCore.Signal(str)
-    progressUpdate_sig = QtCore.Signal(float)
-    logMessage_sig = QtCore.Signal(dict)
+    statusMessage_sig = Signal(str)
+    progressUpdate_sig = Signal(float)
+    logMessage_sig = Signal(dict)
 
     def __init__(self, parent, img_backup_path):
         super(ImageBufferInfo, self).__init__()
@@ -1760,7 +1718,7 @@ class ImageBufferInfo(QtCore.QObject):
 
             sb = QtWidgets.QSpinBox()
             sb.setRange(0, 100)
-            sb.setValue(opa)
+            sb.setValue(int(opa))
             sb.editingFinished.connect(self.update_opacity)
             self._parent.tbl_render_order.setCellWidget(rowPosition, 1, sb)
             sb.loc = img.loc
@@ -1858,9 +1816,9 @@ class ImageBufferInfo(QtCore.QObject):
             self._parent.thread_func = QtCore.QThread(self._parent)
 
             class Worker(QtCore.QObject):
-                finished = QtCore.Signal()
-                dataReady = QtCore.Signal(object)
-                progressSignal = QtCore.Signal(float)
+                finished = Signal()
+                dataReady = Signal(object)
+                progressSignal = Signal(float)
 
                 def __init__(self, parent, func, *args, **kwargs):
                     # QtCore.QObject.__init__(self, *args, **kwargs)
@@ -2230,24 +2188,14 @@ class TableWidgetDragRows(QtWidgets.QTableWidget):
                 # copy_action = QtGui.QAction('Add Image Recognition Zone', self)
                 # copy_action.triggered.connect(self.set_selection_zone)
                 # self.menu.addAction(copy_action)
-
                 self.menu.popup(QtGui.QCursor.pos())
 
-
 def main():
-    sys.path.append(os.path.dirname(os.getcwd()))
-
-    from workspace import mainwindow_show
-    if len(sys.argv) > 1:
-        app, window = mainwindow_show()
-    else:
-        app, window = mainwindow_show()
-    window.showMaximized() 
-    # window.show()      
-    # window.import_image_from_disk(source_path_list=[r"C:\Users\_admin\Documents\Github\imreg_desy_test_data\EBL1.png"])
-    app.exec_()
-    sys.exit()
-
+    app = QApplication(sys.argv)
+    myWin = WorkSpace()
+    myWin.showMaximized() 
+    myWin.show()
+    sys.exit(app.exec_())
 
 if __name__ == '__main__':
     main()

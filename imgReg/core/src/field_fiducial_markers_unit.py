@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 import os
 
-from PySide6 import QtCore, QtGui, QtWidgets
-from ui.fiducial_markers import Ui_fiducial_markers
 from utility_widgets import CopyTable
 
 from spatial_registration_module import rotatePoint
@@ -10,6 +8,11 @@ import numpy as np
 # from numpy import (array, dot, arccos, clip)
 from numpy.linalg import norm
 import math
+from PyQt5 import QtGui, QtCore, QtWidgets, uic
+from PyQt5.QtCore import pyqtSignal as Signal
+from PyQt5.QtCore import pyqtSlot as Slot
+from pathlib import Path
+ui_file_folder = Path(__file__).parent.parent / 'ui'
 
 def test_FiducialMarkerWidget(self):
     """
@@ -31,7 +34,7 @@ class MarkerTable(CopyTable):
     """
     Class for statistical details on the fit
     """
-    removeTool_sig = QtCore.Signal(object)
+    removeTool_sig = Signal(object)
     def __init__(self, parent=None):
         super(CopyTable, self).__init__(parent)
         self._parent=parent
@@ -125,20 +128,20 @@ class MarkerTable(CopyTable):
             positions.insert(0,[point1, point2])
         return positions
 
-class FiducialMarkerWidget(QtWidgets.QDialog, Ui_fiducial_markers):
-    statusMessage_sig = QtCore.Signal(str)
-    progressUpdate_sig = QtCore.Signal(float)
-    logMessage_sig = QtCore.Signal(dict)
-    updateFieldMode_sig = QtCore.Signal(str)
-    removeTool_sig = QtCore.Signal(object)
-    saveimagedb_sig = QtCore.Signal()
-    close_sig = QtCore.Signal()
+class FiducialMarkerWidget(QtWidgets.QDialog):
+    statusMessage_sig = Signal(str)
+    progressUpdate_sig = Signal(float)
+    logMessage_sig = Signal(dict)
+    updateFieldMode_sig = Signal(str)
+    removeTool_sig = Signal(object)
+    saveimagedb_sig = Signal()
+    close_sig = Signal()
     def __init__(self, parent, image, attrs):
         assert isinstance(attrs, dict)
         super(FiducialMarkerWidget,self).__init__(parent)
         
         parent.widget_terminal.update_name_space('fiducial_obj', self)
-        self.setupUi(self)
+        uic.loadUi(str(ui_file_folder/'fiducial_markers.ui'), self)
         self._parent=parent
         self.image = image
         self.attrs = attrs

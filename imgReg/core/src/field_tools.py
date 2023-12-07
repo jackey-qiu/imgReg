@@ -10,6 +10,8 @@ from pyqtgraph.Qt import QtGui, QtCore
 import pyqtgraph as pg
 from pyqtgraph.graphicsItems.ViewBox.ViewBoxMenu import ViewBoxMenu
 import weakref
+from PyQt5.QtCore import pyqtSignal as Signal
+from PyQt5.QtCore import pyqtSlot as Slot
 
 import field_area_tool
 
@@ -87,19 +89,19 @@ class FieldViewBox(pg.ViewBox):
     
     """
     
-    sigYRangeChanged = QtCore.Signal(object, object)
-    sigXRangeChanged = QtCore.Signal(object, object)
-    sigRangeChangedManually = QtCore.Signal(object)
-    sigRangeChanged = QtCore.Signal(object, object)
+    sigYRangeChanged = Signal(object, object)
+    sigXRangeChanged = Signal(object, object)
+    sigRangeChangedManually = Signal(object)
+    sigRangeChanged = Signal(object,object, object)
     #sigActionPositionChanged = QtCore.Signal(object)
-    sigStateChanged = QtCore.Signal(object)
-    sigTransformChanged = QtCore.Signal(object)
-    sigResized = QtCore.Signal(object)
-    pathExtractionClicked = QtCore.Signal(object, object)
-    distanceMeasuredMoved_sig = QtCore.Signal(float,float,float)
-    distanceMeasuredClicked_sig = QtCore.Signal(float,float,float)
-    rectangleSelected_sig = QtCore.Signal(float,float,float,float)
-    fiducialMarkerAdded_sig = QtCore.Signal(object)
+    sigStateChanged = Signal(object)
+    sigTransformChanged = Signal(object)
+    sigResized = Signal(object)
+    pathExtractionClicked = Signal(object, object)
+    distanceMeasuredMoved_sig = Signal(float,float,float)
+    distanceMeasuredClicked_sig = Signal(float,float,float)
+    rectangleSelected_sig = Signal(float,float,float,float)
+    fiducialMarkerAdded_sig = Signal(object)
     ## mouse modes
     PanMode = 3
     RectMode = 1
@@ -113,8 +115,8 @@ class FieldViewBox(pg.ViewBox):
     NamedViews = weakref.WeakValueDictionary()   # name: ViewBox
     AllViews = weakref.WeakKeyDictionary()       # ViewBox: None
 
-    stagePositionTarget_sig = QtCore.Signal(float,float)
-    stageMoveUpdate_sig = QtCore.Signal(float, float)
+    stagePositionTarget_sig = Signal(float,float)
+    stageMoveUpdate_sig = Signal(float, float)
     def __init__(self, parent=None, border=None, lockAspect=False, enableMouse=True,
       invertY=False, enableMenu=True, name=None, invertX=False, defaultPadding=0.02,
       defaultSpotValue=[10,10],defaultSpotInterspacingValue=[10,10],_parent=None):
@@ -280,11 +282,11 @@ class FieldViewBox(pg.ViewBox):
         # except:
         #     QtCore.qDebug("Failed to connect to parent 464df5846")
 
-    @QtCore.Slot(object)
+    @Slot(object)
     def remove_item(self, item):
         self.removeItem(item)
 
-    @QtCore.Slot(str)
+    @Slot(str)
     def set_mode(self, mode):
         assert isinstance(mode, str)
         if len(mode) == 0:
@@ -355,7 +357,7 @@ class FieldViewBox(pg.ViewBox):
         # // clear the currently selected image
         self._parent.update_field_current = None
 
-    @QtCore.Slot(object)
+    @Slot(object)
     def mouseClickEvent(self, ev):
         """
         Slot for a mouse click event

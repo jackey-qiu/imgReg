@@ -4,17 +4,8 @@ import pyqtgraph as pg
 import re
 import time
 
-from PySide6 import QtCore, QtGui, QtWidgets
-import numpy as np
-from PySide6.QtCore import QObject
-from PySide6.QtGui import QPen
-from PySide6.QtGui import QPalette
-from PySide6.QtWidgets import QAbstractButton
-from PySide6.QtGui import QPainter
-from PySide6.QtWidgets import QApplication
-from PySide6.QtCore import QRectF
-from PySide6.QtGui import QLinearGradient, QGradient
-from PySide6.QtCore import Qt, QSize
+from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5.QtCore import pyqtSignal as Signal
 
 def check_true(v):
     if isinstance(v, bool):
@@ -128,8 +119,8 @@ class CopyTable(QtWidgets.QTableWidget):
 
 
 class TableWidgetDragRows(CopyTable):
-    rowsSwitched_sig = QtCore.Signal(int, int)
-    dropEventCompleted_sig = QtCore.Signal()
+    rowsSwitched_sig = Signal(int, int)
+    dropEventCompleted_sig = Signal()
 
     def __init__(self, parent, *args, **kwargs):
         super().__init__(*args, **kwargs)

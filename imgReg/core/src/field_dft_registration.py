@@ -1,17 +1,18 @@
 # -*- coding: utf-8 -*-
 import os
 
-
 # // module to manage the aligment tool in the field view
-from PySide6 import QtGui, QtCore, QtWidgets
 # QtCore.qInstallMsgHandler(lambda *args: None)
 import pyqtgraph as pg
 import numpy as np
 import copy
-from ui.field_registration import Ui_field_registration
 from spatial_registration_module import registration_dft_slice
 from spatial_registration_module import rotatePoint
-
+from PyQt5 import QtGui, QtCore, QtWidgets, uic
+from PyQt5.QtCore import pyqtSignal as Signal
+from PyQt5.QtCore import pyqtSlot as Slot
+from pathlib import Path
+ui_file_folder = Path(__file__).parent.parent / 'ui'
 
 def qt_image_to_array(img, share_memory=False):
     """ Creates a numpy array from a QImage.
@@ -98,13 +99,13 @@ def mdi_field_imreg_show(self):
     self.dock_properties.show()
     self.mdi_field_registration_widget.show()
 
-class MdiFieldImreg(QtWidgets.QDialog, Ui_field_registration):
+class MdiFieldImreg(QtWidgets.QDialog):
     """
     class around the GUI for image registration based on DFT-based input
     """
-    statusMessage_sig = QtCore.Signal(str)
-    progressUpdate_sig = QtCore.Signal(float)
-    logMessage_sig = QtCore.Signal(dict)
+    statusMessage_sig = Signal(str)
+    progressUpdate_sig = Signal(float)
+    logMessage_sig = Signal(dict)
 
     def __init__(self, parent):
         """
@@ -113,7 +114,7 @@ class MdiFieldImreg(QtWidgets.QDialog, Ui_field_registration):
         :param current_group:
         """
         super(MdiFieldImreg, self).__init__(parent)
-        self.setupUi(self)
+        uic.loadUi(str(ui_file_folder/'field_registration.ui'),self)
         self._parent = parent
         self.roi_active = False
         self.target_frame = np.zeros((0,0))
@@ -175,7 +176,7 @@ class MdiFieldImreg(QtWidgets.QDialog, Ui_field_registration):
         else:
             raise ValueError("Unexpected type: {}".format(type(current_loc)))
 
-    @QtCore.Slot()
+    @Slot()
     def set_reference_zone(self, x0, y0, x1, y1):
         """
         Sets the coordinates of the rectangle selection within the reference zone

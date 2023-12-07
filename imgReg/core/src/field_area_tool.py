@@ -15,7 +15,7 @@ The ROI class is meant to serve as the base for more specific types; see several
 of how to build an ROI at the bottom of the file.
 """
 import pyqtgraph as pg
-from PySide6 import QtCore, QtGui, QtWidgets
+from PyQt5 import QtCore, QtGui, QtWidgets
 import numpy as np
 #from numpy.linalg import norm
 from pyqtgraph.Point import *

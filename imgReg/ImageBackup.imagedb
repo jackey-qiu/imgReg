@@ -1,0 +1,16 @@
+<?xml version='1.0' encoding='WINDOWS-1252'?>
+<ImageMap>
+  <Image0>
+    <Filename>structure.png</Filename>
+    <Opacity>100</Opacity>
+    <Visible>TRUE</Visible>
+    <Rotation>0</Rotation>
+    <Center>50000.0,50000.0</Center>
+    <Size>1013.0,1050.0</Size>
+    <Focus>-0.5</Focus>
+    <BaseFolder>C:/Users/qiucanro/Desktop/hematite</BaseFolder>
+  </Image0>
+  <Data>
+    <ImageCount>1</ImageCount>
+  </Data>
+</ImageMap>

@@ -8,7 +8,7 @@ if os.name == "nt":
 Module manages the advanced settings, and various other settings GUI
 """
 
-from PySide6 import QtCore, QtGui, QtWidgets
+from PyQt5 import QtCore, QtGui, QtWidgets
 import pyqtgraph as pg
 
 
@@ -82,7 +82,7 @@ class ScaleBar(pg.GraphicsObject, scaleAnchor):
                  suffix='m'):
         pg.GraphicsObject.__init__(self)
         self.setFlag(self.ItemHasNoContents)
-        self.setAcceptedMouseButtons(QtCore.Qt.NoButton)
+        # self.setAcceptedMouseButtons(QtCore.Qt.NoButton)
         # // fontsize fs
         self.fs = fs
         if brush is None:
@@ -100,7 +100,7 @@ class ScaleBar(pg.GraphicsObject, scaleAnchor):
         self.si_format = False
 
         self.scale_background = QtWidgets.QGraphicsRectItem()
-        self.scale_background.setPen(QtCore.Qt.NoPen)
+        # self.scale_background.setPen(QtCore.Qt.NoPen)
         self.scale_background.setBrush(QtGui.QColor(38, 38, 38, 100))
         self.scale_background.setParentItem(self)
 

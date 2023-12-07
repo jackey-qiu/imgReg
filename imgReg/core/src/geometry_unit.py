@@ -1,23 +1,26 @@
 # -*- coding: utf-8 -*-
 import os
-from PySide6 import QtCore, QtGui, QtWidgets
-from ui.util_geometry import Ui_util_geometry
+from pathlib import Path
+from PyQt5 import QtCore, QtGui, QtWidgets, uic
+from PyQt5.QtCore import pyqtSignal as Signal
 from spatial_registration_module import rotatePoint
 import pyqtgraph as pg
 import numpy as np
 import math
 
-class geometry_dialog(QtWidgets.QDialog, Ui_util_geometry):
+ui_file_folder = Path(__file__).parent.parent / 'ui'
+
+class geometry_dialog(QtWidgets.QDialog):
     """
     Module contains tool to change the position and rotation of the image in the workspace.
     """
-    statusMessage_sig = QtCore.Signal(str)
-    progressUpdate_sig = QtCore.Signal(float)
-    logMessage_sig = QtCore.Signal(dict)
+    statusMessage_sig = Signal(str)
+    progressUpdate_sig = Signal(float)
+    logMessage_sig = Signal(dict)
 
     def __init__(self, parent, attrs, shape, axis=(0, 1, 2)):
         super(geometry_dialog, self).__init__(parent)
-        self.setupUi(self)
+        uic.loadUi(str(ui_file_folder / 'util_geometry.ui'), self)
         self._parent = parent
         #for testing purpose
         self._parent.geo = self
@@ -52,7 +55,7 @@ class geometry_dialog(QtWidgets.QDialog, Ui_util_geometry):
         if not "Rotation" in self.attrs.keys():
             self.attrs['Rotation'] = 0
         else:
-            self.dial_rotation.setValue(self.attrs['Rotation'])
+            self.dial_rotation.setValue(int(self.attrs['Rotation']))
         if not "Rotation_r" in self.attrs:
             self.attrs['Rotation_r'] = self.attrs['Rotation']
 
@@ -332,7 +335,7 @@ class geometry_dialog(QtWidgets.QDialog, Ui_util_geometry):
         elif self.rb_rotation.isChecked():
             f = float(self.ent_dimx.text())
             if f < 360 and f >= 0:
-                self.dial_rotation.setValue(f)
+                self.dial_rotation.setValue(int(f))
                 self.rotate_box()
         elif self.rb_totdim.isChecked():
             self.move_box.setSize((float(self.ent_dimx.text()), float(self.ent_dimy.text())))
@@ -404,7 +407,7 @@ class geometry_dialog(QtWidgets.QDialog, Ui_util_geometry):
             self.move_box.setPos(QtCore.QPointF(self.outl_r[0], self.outl_r[2]))
 
             if 'Rotation_r' in self.attrs.keys():
-                self.dial_rotation.setValue(self.attrs['Rotation_r'])
+                self.dial_rotation.setValue(int(self.attrs['Rotation_r']))
                 self.rotate_box()
             else:
                 self.attrs['Rotation'] = 0
