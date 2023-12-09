@@ -179,13 +179,14 @@ def registration_dft_slice(im0, im1, scale=[1,0], angle=[0,0], tx=[0,0], ty=[0,0
 	im0_r = np.float32(normalize(im0))
 
 	# // get transformation
-	vector_dict = ird.similarity(im0_r, im1_r, numiter=int(iterations), constraints={'scale':scale,'angle':angle, 'tx':tx, 'ty':ty})
+	# vector_dict = ird.similarity(im0_r, im1_r, numiter=int(iterations), constraints={'scale':scale,'angle':angle, 'tx':tx, 'ty':ty})
+	vector_dict = ird.similarity(im0_r, im1_r, numiter=int(iterations))
 	# // apply transformation to each channel
 	if display:
 		im2_r = ird.imreg.transform_img_dict(im1_r, tdict=vector_dict, bgval=None, order=1, invert=False)
 		if not display_window:
 			imv.setImage(im2_r+im0_r)
-			win.setWindowTitle('Reference slice {}; Target slice {}'.format(k,k-1))
+			# win.setWindowTitle('Reference slice {}; Target slice {}'.format(k,k-1))
 			pg.QtGui.QApplication.processEvents()
 			pg.QtGui.QApplication.processEvents()
 		else:

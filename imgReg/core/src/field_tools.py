@@ -343,7 +343,37 @@ class FieldViewBox(pg.ViewBox):
             else:
                 pg.ViewBox.mouseDragEvent(self, ev)
             ev.accept()
+        elif self.mode =='dft':
+            if ev.button() == QtCore.Qt.LeftButton:
+                ev.ignore()    
+            else:
+                pg.ViewBox.mouseDragEvent(self, ev)
+            ev.accept() 
+            pos = ev.pos()
+            if ev.button() == QtCore.Qt.LeftButton:
+                if ev.isFinish():
+                    self.clear_selection()
+                    self.rbScaleBox.hide()
+                    self.ax = QtCore.QRectF(Point(ev.buttonDownPos(ev.button())), Point(pos))
+                    # self.ax = self.childGroup.mapRectFromParent(self.ax)
+                    self.Coords =  self.ax.getCoords()
 
+                    x0, x1, y0, y1 = ev.buttonDownPos().x(), ev.pos().x(),  ev.buttonDownPos().y(),  ev.pos().y()
+                    if x0 > x1:
+                        x0, x1 = x1, x0
+                    if y0 > y1:
+                        y0, y1 = y1, y0
+                    if x0 < 0:
+                        x0 = 0
+
+                    p1 = self.mapSceneToView(QtCore.QPointF(x0,y0))
+                    p2 = self.mapSceneToView(QtCore.QPointF(x1,y1))
+                    # // emit the signal to other widgets
+                    self.rectangleSelected_sig.emit(p1.x(), p1.y(), p2.x(), p2.y())
+                    self._parent.statusbar.showMessage("Extend of the rectangle: X(lef-right): [{:.4}:{:.4}],  Y(top-bottom): [{:.4}:{:.4}]".format(p1.x()/1000, p2.x()/1000, p1.y()/1000, p2.y()/1000))
+                    #self.getdataInRect()
+
+                    # self.changePointsColors()
 
     def clear_selection(self):
         """

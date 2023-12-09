@@ -1523,6 +1523,14 @@ class WorkSpace(QMainWindow):
             except:
                 QtCore.qDebug("Failed to delete group")
 
+    def progressUpdate(self, v):
+        # slot for updating the progressbar
+        self.progressbar.setValue(v)
+
+    def statusUpdate(self, m):
+        # slot for showing a message in the statusbar.
+        self.statusbar.showMessage(m)
+
 class WorkArea(pg.GraphicsObject):
     """
     This class is meant for displaying a colored zone in the field view, wihout listing it in the field render list
@@ -2189,6 +2197,7 @@ class TableWidgetDragRows(QtWidgets.QTableWidget):
                 # copy_action.triggered.connect(self.set_selection_zone)
                 # self.menu.addAction(copy_action)
                 self.menu.popup(QtGui.QCursor.pos())
+
 
 def main():
     app = QApplication(sys.argv)
