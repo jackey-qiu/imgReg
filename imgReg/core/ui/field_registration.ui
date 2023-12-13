@@ -45,13 +45,10 @@
    </item>
    <item row="6" column="0" colspan="3">
     <layout class="QGridLayout" name="gridLayout_2">
-     <item row="0" column="0">
-      <widget class="QCheckBox" name="cb_translation">
+     <item row="0" column="2">
+      <widget class="QPushButton" name="bt_registration">
        <property name="text">
-        <string>Translation</string>
-       </property>
-       <property name="checked">
-        <bool>true</bool>
+        <string>Register</string>
        </property>
       </widget>
      </item>
@@ -65,10 +62,20 @@
        </property>
       </widget>
      </item>
-     <item row="0" column="2">
-      <widget class="QPushButton" name="bt_registration">
+     <item row="0" column="0">
+      <widget class="QCheckBox" name="cb_translation">
        <property name="text">
-        <string>Register</string>
+        <string>Translation</string>
+       </property>
+       <property name="checked">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="3">
+      <widget class="QPushButton" name="pushButton_move">
+       <property name="text">
+        <string>move</string>
        </property>
       </widget>
      </item>

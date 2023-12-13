@@ -330,7 +330,7 @@ class FieldViewBox(pg.ViewBox):
                 mousePoint = self.mapSceneToView(evt)
                 self.activeScanTool.setPoints([[x['pos'].x(),x['pos'].y()] for x in self.activeScanTool.handles[:-1]]+[[mousePoint.x(),mousePoint.y()]])
         elif self.mode=='select':
-            self._parent.lineEdit_coords.setText(str(self.mapSceneToView(evt)))
+            self._parent.statusbar.showMessage(str(self.mapSceneToView(evt)))
 
     def mouseDragFinishedEvent(self, ev):
         print(ev, self.mode)
@@ -406,7 +406,30 @@ class FieldViewBox(pg.ViewBox):
                     self.activeScanTool.setZValue(1e4)
                     self.addItem(self.activeScanTool)
                     self.fiducial_active = 1
-
+            elif self.mode in ['select', 'dft']:
+                pos = ev.scenePos()
+                view = ev.currentItem
+                view_point = view.mapToView(pos)
+                # // check outline of every image displayed and check if the viewposition lies within their outline
+                clicked_list = []
+                self.clear_selection()
+                # // select another dataset
+                for k in self._parent.field_img:
+                    if hasattr(k,'loc'):
+                        if isinstance(k.loc, dict):
+                            if "Outline" in k.loc.keys():
+                                im_pos = QtCore.QRectF(k.pos(),pg.Point(k.loc["Outline"][1], k.loc["Outline"][3]))
+                        elif isinstance(k.loc, Dataset):
+                            if "Outline" in k.loc.attrs.keys():
+                                im_pos = QtCore.QRectF(k.pos(),pg.Point(k.loc.attrs["Outline"][1], k.loc.attrs["Outline"][3]))
+                        else:
+                            continue
+                        if im_pos.contains(view_point):
+                            # // if the clicked point belongs to an image, add it to the list
+                            clicked_list.append(k)
+                #print(view_point)
+                #print(clicked_list)
+                self.select_single_image(clicked_list)
 
         elif ev.button() == QtCore.Qt.RightButton and self.menuEnabled():
             ev.accept()
@@ -419,7 +442,14 @@ class FieldViewBox(pg.ViewBox):
             if view_point:
                 self.stageMoveUpdate_sig.emit(view_point.x(), view_point.y())
 
-
+    def select_single_image(self, checked_list):
+        if len(checked_list)>0:
+            self._parent._clear_borders()
+            self._parent.update_field_current = checked_list[0]
+            self._parent._show_border()
+            if self.mode in ['select', 'dft']:
+                self._parent.update_geo()
+                
     def create_pattern(self):
         import numpy as np
         trajectory_nodes = np.zeros((2,0,3))

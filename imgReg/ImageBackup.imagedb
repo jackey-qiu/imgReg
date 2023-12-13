@@ -1,24 +1,24 @@
 <?xml version='1.0' encoding='WINDOWS-1252'?>
 <ImageMap>
   <Image0>
-    <Filename>large.jpg</Filename>
-    <Opacity>100</Opacity>
+    <Filename>structure.png</Filename>
+    <Opacity>80</Opacity>
     <Visible>TRUE</Visible>
-    <Rotation>0</Rotation>
-    <Center>48015.35121482644,48912.60404234242</Center>
-    <Size>1891.0,1891.0</Size>
+    <Rotation>0.0</Rotation>
+    <Center>50000.0,50000.0</Center>
+    <Size>1013.0,1050.0</Size>
     <Focus>-0.5</Focus>
-    <BaseFolder>C:/Users/qiucanro/Desktop/img_reg</BaseFolder>
+    <BaseFolder>C:/Users/qiucanro/Desktop/hematite</BaseFolder>
   </Image0>
   <Image1>
-    <Filename>small_structure.jpg</Filename>
+    <Filename>structure2(1).png</Filename>
     <Opacity>100</Opacity>
     <Visible>TRUE</Visible>
-    <Rotation>0</Rotation>
-    <Center>51018.49638877176,48857.29673454875</Center>
-    <Size>1891.0,1891.0</Size>
+    <Rotation>-45.028092959305326</Rotation>
+    <Center>48888.97150155387,48863.774918770985</Center>
+    <Size>806.173922308255,806.173922308255</Size>
     <Focus>-0.5</Focus>
-    <BaseFolder>C:/Users/qiucanro/Desktop/img_reg</BaseFolder>
+    <BaseFolder>C:/Users/qiucanro/Desktop/hematite</BaseFolder>
   </Image1>
   <Data>
     <ImageCount>2</ImageCount>

@@ -10,6 +10,236 @@ import math
 
 ui_file_folder = Path(__file__).parent.parent / 'ui'
 
+class geometry_widget_wrapper(object):
+    """
+    Module contains tool to change the position and rotation of the image in the workspace.
+    """
+
+    def __init__(self):
+        self.attrs_geo = None
+        self.shape_geo = None
+        self.axis_geo = (0,1,2)
+        # // disable registration mark tab
+        self.tabWidget_2.setTabEnabled(1, False)
+        # // enable field view
+        self.setEnabled(True)
+
+        self.ent_dimx.setValidator(QtGui.QDoubleValidator(0, 9999999, 3))
+        self.ent_dimy.setValidator(QtGui.QDoubleValidator(0, 9999999, 3))
+        self.ent_dimz.setValidator(QtGui.QDoubleValidator(0, 9999999, 3))
+
+        self.lineEdit_cx.setValidator(QtGui.QDoubleValidator(0, 9999999, 0))
+        self.lineEdit_cy.setValidator(QtGui.QDoubleValidator(0, 9999999, 0))
+        self.lineEdit_cz.setValidator(QtGui.QDoubleValidator(0, 9999999, 0))
+
+        self.lineEdit_pxc_x.setValidator(QtGui.QDoubleValidator(0, 9999999, 0))
+        self.lineEdit_pxc_y.setValidator(QtGui.QDoubleValidator(0, 9999999, 0))
+        self.lineEdit_pxc_z.setValidator(QtGui.QDoubleValidator(0, 9999999, 0))
+
+        self.lineEdit_rot_angle.setValidator(QtGui.QDoubleValidator(0, 9999999, 3))
+
+    #callback whenever switch to a different image, being called once
+    def update_geo(self):
+        self.attrs_geo = self.update_field_current.loc
+        self.shape_geo = (self.update_field_current.width, self.update_field_current.height, 1)
+        # % get length from outline
+        if not 'Outline' in self.attrs_geo.keys():
+            self.attrs_geo['Outline'] = [0, self.shape_geo[self.axis_geo[0]], 0, self.shape_geo[self.axis_geo[1]], 0,
+                                     self.shape_geo[self.axis_geo[2]]]
+
+        if not "Rotation" in self.attrs_geo.keys():
+            self.attrs_geo['Rotation'] = 0
+
+        self._update_input_values()
+        self.display_move_box_geo()
+        self.save_current_state_geo()
+        # // display the selected image in the center
+        # self.autoRange(items=[self.update_field_current])
+
+    def connect_slots_geo(self):
+        self.pushButton_apply.clicked.connect(self.apply_new_state_geo)
+        self.pushButton_reset.clicked.connect(self.reset_move_box_geo)
+        self.pushButton_save.clicked.connect(self.save_current_state_geo)
+
+    def apply_new_state_geo(self):
+        # % apply the settings toward the dataset selected
+        def _extract_input_box():
+            pixdim = [float(self.ent_dimx.text()), float(self.ent_dimy.text()), float(self.ent_dimz.text())]
+            center = [float(self.lineEdit_cx.text()), float(self.lineEdit_cy.text()), float(self.lineEdit_cz.text())]
+            pixc = [int(self.lineEdit_pxc_x.text()), int(self.lineEdit_pxc_y.text()), int(self.lineEdit_pxc_z.text())]
+            rot = float(self.lineEdit_rot_angle.text())
+            return pixdim, center, pixc, rot
+        pixdim, center, pixc, rot = _extract_input_box()
+        width, height = pixdim[0]*pixc[0], pixdim[1]*pixc[1]
+        self.move_box.setAngle(0,center=[0.5,0.5])
+        new_roi_pos_before_rotation = pg.Point(center[0] - width/2, center[1]-height/2)
+        self.move_box.setPos(new_roi_pos_before_rotation)
+        self.move_box.setAngle(rot,center=[0.5,0.5])
+        self.move_box.setSize(pg.Point(width, height),center=[0.5,0.5])
+
+    #the state for resetting the roi afterwards will be stored
+    def save_current_state_geo(self):
+        self.reset_pos = self.update_field_current.pos()
+        self.reset_angle = self.attrs_geo["Rotation"]
+        outl = self.attrs_geo['Outline']
+        self.reset_size = pg.Point(
+            outl[1] - outl[0], \
+            outl[3] - outl[2])
+        
+    #set the move_box to saved state
+    def reset_move_box_geo(self):
+        self.move_box.setPos(self.reset_pos)
+        self.move_box.setAngle(self.reset_angle,center=[0,0])
+        self.move_box.setSize(self.reset_size,center=[0,0])
+
+    #called once at the beginning
+    def display_move_box_geo(self):
+        if self.update_field_current:
+            if hasattr(self, 'move_box') and type(self.move_box)==pg.ROI:
+                self.field.removeItem(self.move_box)
+            if not self.update_field_current.isVisible():
+                return None
+            self.update_field_current.setBorder('r')
+            self.reset_pos = self.update_field_current.pos()
+            self.reset_angle = self.attrs_geo["Rotation"]
+            outl = self.attrs_geo['Outline']
+            self.reset_size = pg.Point(
+                outl[1] - outl[0], \
+                outl[3] - outl[2])
+            dash_pen = pg.mkPen((255, 255, 255), width=1, dash=[4, 2])
+            self.move_box = pg.ROI(self.reset_pos, size=self.reset_size, angle=self.reset_angle, pen=dash_pen)
+            self.move_box.handleSize = 10
+            self.move_box.handlePen = pg.mkPen("#FFFFFF")
+            self.move_box.addRotateHandle([1, 0], [0.5, 0.5])
+            self.move_box.addRotateHandle([0, 1], [0.5, 0.5])
+            self.move_box.addScaleHandle([0, 0], [0.5, 0.5])
+            self.move_box.addScaleHandle([1, 1], [0.5, 0.5])
+            self._lockAspect()
+            self.field.addItem(self.move_box)
+            self.move_box.sigRegionChangeFinished.connect(self.update_box_geo)
+
+    #callback func when manipulating roi (move_box): ie rotation, scaling, translating
+    def update_box_geo(self):
+        outl = self.attrs_geo['Outline']
+        self.rot = self.move_box.angle()
+
+        # % get the transformation as the delta between the two topleft corners
+        # this is needed since move box rotate about center while the filed rotate about the top left corner
+        delta_t = self.update_field_current.pos() - self.move_box.pos()
+
+        # % reset the scaling to 1/1 prior to rotation
+        s = list(self.update_field_current._scale)
+        tr = QtGui.QTransform()
+        tr.scale(1 / s[0], 1 / s[1])
+        self.update_field_current.setTransform(tr)
+
+        # absolute rather than relative rotation
+        self.update_field_current.setRotation(self.rot)
+        self.attrs_geo["Rotation"] = self.rot
+
+        # // check for changes in the x scale
+        if np.abs(outl[1] - outl[0]) != self.move_box.size()[0]:
+            s[0] *= self.move_box.size()[0] / np.abs(outl[1] - outl[0])
+            outl[1] = outl[0] + self.move_box.size()[0]
+
+        # // check for changes in the y scale
+        if np.abs(outl[3] - outl[2]) != self.move_box.size()[1]:
+            s[1] *= self.move_box.size()[1] / np.abs(outl[3] - outl[2])
+            outl[3] = outl[2] + self.move_box.size()[1]
+
+        # self.update_field_current.scale(s[0], s[1])
+        tr = QtGui.QTransform()
+        tr.scale(s[0], s[1])
+        self.update_field_current.setTransform(tr)
+
+        self.update_field_current._scale = (s[0], s[1])
+
+        # % apply the transform by moving the image
+        # translation offset due to rotation point difference (top left corder vs center)
+        self.update_field_current.setPos(self.update_field_current.pos() - delta_t)
+
+        self.attrs_geo['Outline'] = self._cal_outl_from_roi()
+        #self.recalc_values()
+        self._update_input_values()
+
+    def _cal_outl_from_roi(self):
+        #outl should only reflect the width and the height of roi with the right rotation center
+        #outl = [c_x - width/2, c_x + width/2, c_y - height/2, c_y + height/2, -0.5, 0.5] for 2d image
+        #NOTE: outl is not the coordiates of physical boundary of rectangle roi area
+        #roi position
+        pos = np.array(self.move_box.pos())
+        #width and height
+        wd, ht = list(self.move_box.size())
+        #rotation angle (0-360)
+        ang = math.radians(self.move_box.angle()%360)
+        diag_point_1 = pos + np.array([wd * math.cos(ang),wd * math.sin(ang)])
+        diag_point_2 = pos + np.array([-ht * math.sin(ang),ht * math.cos(ang)])
+        c_x, c_y = (diag_point_1 + diag_point_2)/2
+        outl = [c_x-wd/2, c_x+wd/2, c_y-ht/2, c_y+ht/2, self.attrs_geo['Outline'][-2],self.attrs_geo['Outline'][-1]]
+        return outl
+
+    def _lockAspect(self):
+        for info in self.move_box.handles:
+            h = info["item"]
+            info['lockAspect'] = True
+
+    #fill in info based on new outline and rotation values
+    def _update_input_values(self):
+        """
+        Function to update the values currently in the attributes
+        :return:
+        """
+        outl = self.attrs_geo['Outline']
+        rot = self.attrs_geo['Rotation']
+        self._recalc_values(outl)
+        self.ent_dimx.setText(str(round(self.pixdim[0],2)))
+        self.ent_dimy.setText(str(round(self.pixdim[1],2)))
+        self.ent_dimz.setText(str(round(self.pixdim[2],2)))
+        self.lineEdit_cx.setText(str(round(self.center[0],1)))
+        self.lineEdit_cy.setText(str(round(self.center[1],1)))
+        self.lineEdit_cz.setText(str(round(self.center[2],1)))
+        self.lineEdit_outl_x.setText(f"[{round(outl[0],1)},{round(outl[1],1)}]")
+        self.lineEdit_outl_y.setText(f"[{round(outl[2],1)},{round(outl[3],1)}]")
+        self.lineEdit_outl_z.setText(f"[{round(outl[4],1)},{round(outl[5],1)}]")
+        self.lineEdit_pxc_x.setText(f"{int(self.shape_geo[0])}")
+        self.lineEdit_pxc_y.setText(f"{int(self.shape_geo[1])}")
+        self.lineEdit_pxc_z.setText(f"{int(self.shape_geo[2])}")
+        self.lineEdit_rot_angle.setText(str(rot))
+
+    #recal meta info from outline values
+    def _recalc_values(self, outl):
+        """
+        Recalculates the pixdim, aspect ratios and center based on the outline and the dataset shape
+        :return:
+        """
+        if outl[0] != outl[1]:
+            self.x_aspect = self.shape_geo[self.axis_geo[0]] / abs(outl[0] - outl[1])
+        else:
+            self.x_aspect = 1
+        if outl[2] != outl[3]:
+            self.y_aspect = self.shape_geo[self.axis_geo[1]] / abs(outl[2] - outl[3])
+        else:
+            self.y_aspect = 1
+        if outl[4] != outl[5]:
+            self.z_aspect = self.shape_geo[self.axis_geo[2]] / abs(outl[4] - outl[5])
+        else:
+            self.z_aspect = 1
+        # // self.pixdim is the pixel dimensions
+        self.pixdim = [1, 1, 1]
+        self.size = [1, 1, 1]
+        self.size[0] = outl[1] - outl[0]
+        self.size[1] = outl[3] - outl[2]
+        self.size[2] = outl[5] - outl[4]
+        self.attrs_geo["Size"] = self.size
+        self.pixdim[0] = self.size[0] / self.shape_geo[self.axis_geo[0]]
+        self.pixdim[1] = self.size[1] / self.shape_geo[self.axis_geo[1]]
+        self.pixdim[2] = self.size[2] / self.shape_geo[self.axis_geo[2]]
+        self.center = [0, 0, 0]
+        self.center[0] = (outl[1] - outl[0]) / 2 + outl[0]
+        self.center[1] = (outl[3] - outl[2]) / 2 + outl[2]
+        self.center[2] = (outl[5] - outl[4]) / 2 + outl[4]
+        self.attrs_geo["Center"] = self.center
+
 class geometry_dialog(QtWidgets.QDialog):
     """
     Module contains tool to change the position and rotation of the image in the workspace.

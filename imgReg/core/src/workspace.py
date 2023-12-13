@@ -13,8 +13,8 @@ from PyQt5.QtWidgets import QMainWindow, QApplication
 from PyQt5.QtCore import pyqtSignal as Signal
 from PyQt5.QtCore import pyqtSlot as Slot
 from settings_unit import ScaleBar
-from geometry_unit import geometry_dialog
-from field_dft_registration import mdi_field_imreg_show
+from geometry_unit import geometry_dialog, geometry_widget_wrapper
+from field_dft_registration import mdi_field_imreg_show, MdiFieldImreg_Wrapper
 from spatial_registration_module import rotatePoint
 from field_fiducial_markers_unit import FiducialMarkerWidget
 from field_tools import FieldViewBox
@@ -41,7 +41,7 @@ def quick_min_max(data):
         data = data[sl]
     return nanmin(data), nanmax(data)
 
-class WorkSpace(QMainWindow):
+class WorkSpace(QMainWindow, MdiFieldImreg_Wrapper, geometry_widget_wrapper):
     """
     Main class of the workspace
     """
@@ -56,8 +56,12 @@ class WorkSpace(QMainWindow):
         :param parent: parent widget
         :param settings_object: settings object
         """
-        super(WorkSpace, self).__init__(parent)
+        QMainWindow.__init__(self, parent)
+        #super(WorkSpace, self).__init__(parent)
         uic.loadUi(str(ui_file_folder / 'img_reg_main_window.ui'), self)
+
+        MdiFieldImreg_Wrapper.__init__(self)
+        geometry_widget_wrapper.__init__(self)
         self.setMinimumSize(800, 600)
         self.widget_terminal.update_name_space('gui', self)
         self._parent = self
@@ -69,7 +73,7 @@ class WorkSpace(QMainWindow):
         self.field_img = []
         self.patternCollection = []
         self.tbl_render_order = TableWidgetDragRows(self)
-        self.tbl_render_order.setMaximumWidth(500)
+        self.tbl_render_order.setMaximumWidth(5000)
         self.tbl_render_order.setColumnCount(3)
         self.tbl_render_order.setHorizontalHeaderLabels(["Show", "Opacity", "Layer"])
         self.gridLayout_renderTable.addWidget(self.tbl_render_order)
@@ -203,6 +207,17 @@ class WorkSpace(QMainWindow):
         self.connect_slots()
         self.imageBuffer.recallImgBackup()
         
+    @Slot(int)    
+    def switch_mode(self, tabIndex):
+        tabText = self.tabWidget.tabText(tabIndex).lower()
+        if 'fiducial' in tabText:
+            self.field.set_mode('fiducial_marker')
+        elif 'dft' in tabText:
+            self.field.set_mode('dft')
+        elif 'geometry' in tabText:
+            self.field.set_mode('select')
+            self.update_geo()
+
     def set_cursor_icon(self, cursor_type="cross"):
         """
         Change the cursor icon
@@ -219,9 +234,15 @@ class WorkSpace(QMainWindow):
 
     def connect_slots(self):
         """
-
         :return:
         """
+        #tabwidget signal
+        self.tabWidget.tabBarClicked.connect(self.switch_mode)
+        #dft slots
+        self.connect_slots_dft()
+        #geo slots
+        self.connect_slots_geo()
+        #widget events
         self.bt_removeMenu.setMenu(QtWidgets.QMenu(self.bt_removeMenu))
         self.bt_removeMenu.clicked.connect(self.bt_removeMenu.showMenu)
         self.bt_delete = QtWidgets.QPushButton(self)
@@ -2200,9 +2221,11 @@ class TableWidgetDragRows(QtWidgets.QTableWidget):
 
 
 def main():
+    import qdarkstyle
     app = QApplication(sys.argv)
     myWin = WorkSpace()
     myWin.showMaximized() 
+    app.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
     myWin.show()
     sys.exit(app.exec_())
 
