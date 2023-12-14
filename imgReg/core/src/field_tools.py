@@ -449,6 +449,8 @@ class FieldViewBox(pg.ViewBox):
             self._parent._show_border()
             if self.mode in ['select', 'dft']:
                 self._parent.update_geo()
+                if self.mode == 'dft':
+                    self._parent.move_box.hide()
                 
     def create_pattern(self):
         import numpy as np

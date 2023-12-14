@@ -9,14 +9,14 @@ import numpy as np
 import pyqtgraph as pg
 import pyqtgraph.functions as fn
 from PyQt5 import QtGui, QtCore, QtWidgets, uic
-from PyQt5.QtWidgets import QMainWindow, QApplication
+from PyQt5.QtWidgets import QMainWindow, QApplication,QMessageBox
 from PyQt5.QtCore import pyqtSignal as Signal
 from PyQt5.QtCore import pyqtSlot as Slot
 from settings_unit import ScaleBar
 from geometry_unit import geometry_dialog, geometry_widget_wrapper
 from field_dft_registration import mdi_field_imreg_show, MdiFieldImreg_Wrapper
 from spatial_registration_module import rotatePoint
-from field_fiducial_markers_unit import FiducialMarkerWidget
+from field_fiducial_markers_unit import FiducialMarkerWidget, FiducialMarkerWidget_wrapper
 from field_tools import FieldViewBox
 from utility_widgets import check_true
 from importmodule import load_im_xml, load_align_xml
@@ -41,7 +41,7 @@ def quick_min_max(data):
         data = data[sl]
     return nanmin(data), nanmax(data)
 
-class WorkSpace(QMainWindow, MdiFieldImreg_Wrapper, geometry_widget_wrapper):
+class WorkSpace(QMainWindow, MdiFieldImreg_Wrapper, geometry_widget_wrapper, FiducialMarkerWidget_wrapper):
     """
     Main class of the workspace
     """
@@ -49,6 +49,10 @@ class WorkSpace(QMainWindow, MdiFieldImreg_Wrapper, geometry_widget_wrapper):
     progressUpdate_sig = Signal(float)
     logMessage_sig = Signal(dict)
     switch_selection_sig = Signal(str)
+    #fiducial marking signals
+    updateFieldMode_sig = Signal(str)
+    removeTool_sig = Signal(object)
+    saveimagedb_sig = Signal()
 
     def __init__(self, parent = None):
         """
@@ -62,6 +66,7 @@ class WorkSpace(QMainWindow, MdiFieldImreg_Wrapper, geometry_widget_wrapper):
 
         MdiFieldImreg_Wrapper.__init__(self)
         geometry_widget_wrapper.__init__(self)
+        FiducialMarkerWidget_wrapper.__init__(self)
         self.setMinimumSize(800, 600)
         self.widget_terminal.update_name_space('gui', self)
         self._parent = self
@@ -193,7 +198,7 @@ class WorkSpace(QMainWindow, MdiFieldImreg_Wrapper, geometry_widget_wrapper):
             elif "(50 mm X 50 mm)" in self.settings_object.value('Stages'):
                 self.X_controller_travel, self.Y_controller_travel = 50000, 50000
 
-        self.add_workspace()
+        # self.add_workspace()
         self.autoRange(padding=0.02)
         if self.settings_object.contains("FileManager/restoreimagedb"):
             self.img_backup_path = self.settings_object.value("FileManager/restoreimagedb")
@@ -212,11 +217,18 @@ class WorkSpace(QMainWindow, MdiFieldImreg_Wrapper, geometry_widget_wrapper):
         tabText = self.tabWidget.tabText(tabIndex).lower()
         if 'fiducial' in tabText:
             self.field.set_mode('fiducial_marker')
+            self.update_fiducial()
+            if hasattr(self, 'move_box'):
+                self.move_box.hide()
         elif 'dft' in tabText:
             self.field.set_mode('dft')
+            if hasattr(self, 'move_box'):
+                self.move_box.hide()
         elif 'geometry' in tabText:
             self.field.set_mode('select')
             self.update_geo()
+            if hasattr(self, 'move_box'):
+                self.move_box.show()
 
     def set_cursor_icon(self, cursor_type="cross"):
         """
@@ -240,6 +252,8 @@ class WorkSpace(QMainWindow, MdiFieldImreg_Wrapper, geometry_widget_wrapper):
         self.tabWidget.tabBarClicked.connect(self.switch_mode)
         #dft slots
         self.connect_slots_dft()
+        #fiducial slots
+        self.connect_slots_fiducial()
         #geo slots
         self.connect_slots_geo()
         #widget events
@@ -748,10 +762,25 @@ class WorkSpace(QMainWindow, MdiFieldImreg_Wrapper, geometry_widget_wrapper):
         self.field.addItem(self.sb)
         self.sb.setParentItem(self.field)
         self.sb._scaleAnchor__parent = self.field
-        self.sb.anchor((1, 1), (1, 1), offset=(-30, -30))
+        # self.sb.anchor((1, 1), (1, 1), offset=(-30, -30))
+        self.sb.updateBar()
         self.show_scale_bar(self.settings_object.value("Visuals/showScalebar"))
+        # print(type(self.settings_object.value("Visuals/showScalebar")))
+        #self.show_scale_bar(False)
 
     def show_scale_bar(self, enabled):
+        if type(enabled)==str:
+            if enabled in ['0', 'False', 'false']:
+                enabled = False
+            else:
+                enabled = True
+        elif type(enabled) == bool:
+            pass
+        elif type(enabled)==int:
+            if enabled==0:
+                enabled = False
+            else:
+                enabled = True
         if enabled:
             self.sb.show()
         else:
@@ -1551,6 +1580,19 @@ class WorkSpace(QMainWindow, MdiFieldImreg_Wrapper, geometry_widget_wrapper):
     def statusUpdate(self, m):
         # slot for showing a message in the statusbar.
         self.statusbar.showMessage(m)
+
+    def closeEvent(self, event):
+        import time
+        quit_msg = "About to Exit the program, do you want to save the current settings? "
+        reply = QMessageBox.question(self, 'Message', 
+                        quit_msg, QMessageBox.Yes, QMessageBox.No)
+        if reply == QMessageBox.Yes:
+            print('saving the image to db')
+            self.saveimagedb_sig.emit()
+            time.sleep(0.2)
+            event.accept()
+        else:
+            event.ignore()
 
 class WorkArea(pg.GraphicsObject):
     """

@@ -128,6 +128,181 @@ class MarkerTable(CopyTable):
             positions.insert(0,[point1, point2])
         return positions
 
+
+class FiducialMarkerWidget_wrapper(object):
+
+    def __init__(self):
+        self._parent=self
+        self.tbl_markers_fiducial = MarkerTable(self._parent)
+        self.tbl_markers_fiducial.removeTool_sig.connect(self.removeTool_sig.emit)
+        self.grid_alignment_mark.addWidget(self.tbl_markers_fiducial)
+        self.scale_factor = 1
+
+    def update_fiducial(self):
+        if self.update_field_current == None:
+            return
+        self.image_fiducial = self.update_field_current
+        self.attrs_fiducial = self.update_field_current.loc
+        self.attrs_fiducial['Outline_r'] = self.attrs_fiducial['Outline'].copy()
+        self.attrs_fiducial['Rotation_r'] = self.attrs_fiducial['Rotation']
+
+    def connect_slots_fiducial(self):
+        self.bt_align_fiducial.clicked.connect(self.compute_transformation)
+        self.bt_reset_fiducial.clicked.connect(self.reset_transformation)
+        self.updateFieldMode_sig.connect(self.field.set_mode)
+        self.removeTool_sig.connect(self.field.remove_item)
+        self.saveimagedb_sig.connect(self.imageBuffer.writeImgBackup)
+        self.field.fiducialMarkerAdded_sig.connect(self.add_field_tool)
+
+    def add_field_tool(self, tool):
+        self.tbl_markers_fiducial.add_field_tool(tool)
+
+    def reset_transformation(self):
+        """
+        :return:
+        """
+
+        s = list(self.image_fiducial._scale)
+        tr = QtGui.QTransform()
+        tr.scale(1 / s[0], 1 / s[1])
+        self.image_fiducial.setTransform(tr)
+        #self.image.scale(1 / s[0], 1 / s[1])
+
+        # // restore orientation
+        if 'Rotation_r' in self.attrs_fiducial.keys():
+            self.image_fiducial.setRotation(-self.attrs_fiducial["Rotation"])
+            self.image_fiducial.setRotation(self.attrs_fiducial["Rotation_r"])
+            self.attrs_fiducial["Rotation"] = self.attrs_fiducial["Rotation_r"]
+        else:
+            self.image_fiducial.setRotation(-self.attrs_fiducial["Rotation"])
+            self.attrs_fiducial['Rotation'] = 0
+
+        self.outl_r = self.attrs_fiducial['Outline_r']
+        a = (abs(self.outl_r[1] - self.outl_r[0]),
+             abs(self.outl_r[3] - self.outl_r[2]))
+
+        x_aspect = self.image_fiducial.pixmap.width() / a[0]
+        y_aspect = self.image_fiducial.pixmap.height() / a[1]
+        s = (1 / x_aspect, 1 / y_aspect)
+        tr = QtGui.QTransform()
+        tr.scale(s[0], s[1])
+        self.image_fiducial.setTransform(tr)
+        self.image_fiducial._scale = (s[0], s[1])
+
+        # self.move_box.blockSignals(False)
+        self.image_fiducial.setPos(QtCore.QPointF(self.outl_r[0], self.outl_r[2]))
+        self.attrs_fiducial['Outline'] = self.attrs_fiducial['Outline_r']
+        self.tbl_markers_fiducial.reset_all()
+        # self.bt_align.setEnabled(True)
+        # self.bt_reset.setEnabled(False)
+        self.saveimagedb_sig.emit()
+
+    def _angle_bw_vectors(self, v1, v2):
+        #v1 is supposed to be the ref vector on the sample
+        #v2 is supposed to be the ref vector on the image
+        #return the angle in degree between v1 and v2, sign awared
+        #if mess up, the sign of calculated angle will be opposite
+        #according to the rotation sense, the following is ture
+        #rotating the v1 by the calcualted angle in counterwise direction, it will be in parallel with v2
+
+        v1, v2 = np.array(v1), np.array(v2)
+        v1_u, v2_u = v1/np.linalg.norm(v1), v2/np.linalg.norm(v2)
+        minor = np.linalg.det(
+        np.stack((v1_u[-2:], v2_u[-2:]))
+        )
+        if minor == 0:
+            sign = 1
+        else:
+            sign = -np.sign(minor)
+        dot_p = np.dot(v1_u, v2_u)
+        dot_p = min(max(dot_p, -1.0), 1.0)
+        return np.rad2deg(sign * np.arccos(dot_p))
+
+    def compute_transformation(self):
+        """
+        Compute the transform based on the position list.
+        :return:
+        """
+        # // get the scale transform by comparing the difference between the endpoints of the scan
+        # point_list = [[point1_img, point1_sample],[point2_img, point2_sample]]
+        #each point store a [x, y] coordinates, to get it just using list(point)
+        # img has features to be aligned with the sample
+        point_list = self.tbl_markers_fiducial.get_positions()
+        #reference vector on image and sample
+        v_image = np.array(point_list[0][0]-point_list[1][0])
+        v_sample = np.array(point_list[0][1]-point_list[1][1])
+        #vector pointing from the origin of the image to the first ref point on the image
+        v_og_p1_image = np.array(point_list[0][0]-self.image_fiducial.pos())
+
+        #cal the scaling factor
+        dis_image = np.linalg.norm(v_image)
+        dis_sample = np.linalg.norm(v_sample)
+        self.scale_factor = dis_sample / dis_image
+
+        #scale this vector v_og_p1_image
+        v_og_p1_image_scaled = v_og_p1_image * self.scale_factor
+
+        #cal the net rotation angle in degree bw vector v_image and v_sample
+        net_rotation = self._angle_bw_vectors(v_sample, v_image)
+
+        # // get the current rotation
+        current_rotation_degrees = self.attrs_fiducial["Rotation"]
+        full_rotation_degrees = current_rotation_degrees + net_rotation
+
+        #rotate the image
+        #this rotation is not based on the relative rotation angle but based on the absolute angle
+        self.image_fiducial.setRotation(full_rotation_degrees)
+        self.attrs_fiducial["Rotation"] = full_rotation_degrees
+        # self.image_fiducial.scale(self.scale_factor*s[0], self.scale_factor*s[1])
+
+        #scale the image
+        s = list(self.image_fiducial._scale)
+        tr = QtGui.QTransform()
+        #scale it back according to the original scale
+        tr.scale(1/s[0], 1/s[1])
+        self.image_fiducial.setTransform(tr)
+        #now apply the real scaling factor
+        tr = QtGui.QTransform()
+        tr.scale(self.scale_factor*(s[0]), self.scale_factor*(s[1]))
+        self.image_fiducial.setTransform(tr)
+        #store the new scaling factor
+        self.image_fiducial._scale = (self.scale_factor*s[0], self.scale_factor*s[1])
+
+        #up to here two feature object should be identical in size and orientation, but still shifted by some translation vector
+
+        #cal the first ref point after scaling and rotation
+        p1_image_final = rotatePoint(centerPoint=np.array([0,0]), point = v_og_p1_image_scaled,
+                                                  angle=net_rotation) + self.image_fiducial.pos()
+        # this p1 final point need to tranlate to the correspoinding p1 on sample
+        v_diff_p1 = point_list[0][1] - p1_image_final
+        #now move the whole image by this vector
+        self.image_fiducial.setPos(self.image_fiducial.pos() + v_diff_p1)
+
+        # // recalculate_all the outline position
+        new_outline = self.cal_outl()
+        self.attrs_fiducial["Outline"] = new_outline
+        # self.bt_align.setEnabled(False)
+        # self.bt_reset.setEnabled(True)
+        # // save the imageMap in order to save the new position
+        self.saveimagedb_sig.emit()
+
+    def cal_outl(self):
+        #outl should only reflect the width and the height of roi with the right rotation center
+        #outl = [c_x - width/2, c_x + width/2, c_y - height/2, c_y + height/2, -0.5, 0.5] for 2d image
+        #NOTE: outl is not the coordiates of physical boundary of rectangle roi area
+        #roi position
+        pos = np.array(self.image_fiducial.pos())
+        #width and height
+        outl = self.attrs_fiducial['Outline']
+        wd, ht = [abs(outl[1] - outl[0])*self.scale_factor,abs(outl[3] - outl[2])*self.scale_factor]
+        #rotation angle (0-360)
+        ang = math.radians(self.attrs_fiducial['Rotation']%360)
+        diag_point_1 = pos + np.array([wd * math.cos(ang),wd * math.sin(ang)])
+        diag_point_2 = pos + np.array([-ht * math.sin(ang),ht * math.cos(ang)])
+        c_x, c_y = (diag_point_1 + diag_point_2)/2
+        outl = [c_x-wd/2, c_x+wd/2, c_y-ht/2, c_y+ht/2, outl[-2], outl[-1]]
+        return outl
+
 class FiducialMarkerWidget(QtWidgets.QDialog):
     statusMessage_sig = Signal(str)
     progressUpdate_sig = Signal(float)

@@ -83,6 +83,7 @@ class ScaleBar(pg.GraphicsObject, scaleAnchor):
         pg.GraphicsObject.__init__(self)
         self.setFlag(self.ItemHasNoContents)
         # self.setAcceptedMouseButtons(QtCore.Qt.NoButton)
+        self.axisOrder = 'row-major'
         # // fontsize fs
         self.fs = fs
         if brush is None:
@@ -186,7 +187,8 @@ class ScaleBar(pg.GraphicsObject, scaleAnchor):
     def parentChanged(self):
         if self.parentItem() is None:
             return
-        view = self.parentItem().getViewBox()
+        # view = self.parentItem().getViewBox()
+        view = self.parentItem()
         if view is None:
             return
         view.sigRangeChanged.connect(self.updateDelay)
@@ -218,7 +220,6 @@ class ScaleBar(pg.GraphicsObject, scaleAnchor):
         else:
             box_alignment_correction = 0
             text_alignment_correction = w / 2.
-
         self.bar.setRect(QtCore.QRectF(-box_alignment_correction, -self.height, w, self.height))
         self.scale_text.setPos(text_alignment_correction, -self.height)
         self.zoom_text.setPos(text_alignment_correction, -self.height - self.fs * 1.2)
@@ -233,10 +234,57 @@ class ScaleBar(pg.GraphicsObject, scaleAnchor):
         self.scale_background.setRect(
             QtCore.QRectF(-box_alignment_correction - 20, -(self.fs * 2.7) - self.height, w + 40,
                           self.height + self.fs * 2.9))
+        self.update()
 
     def updateDelay(self):
         QtCore.QTimer.singleShot(100, self.updateBar)
         # QtCore.QCoreApplication.instance().processEvents()
 
     def boundingRect(self):
-        return QtCore.QRectF()
+        return self.bar.rect()#QtCore.QRectF()
+
+    def setParentItem(self, p):
+        ret = pg.GraphicsObject.setParentItem(self, p)
+        self._scaleAnchor__parent = p
+        # ret=self._qtBaseClass.setParentItem(self, p)
+        if self.offset is not None:
+            offset = pg.Point(self.offset)
+            # anchorx = 1 if offset[0] <= 0 else 0
+            # anchory = 1 if offset[1] <= 0 else 0
+            # anchor = (anchorx, anchory)
+            self.anchor(
+                itemPos=self.anchor_pos,
+                parentPos=self.anchor_pos,
+                offset=offset
+            )
+        return ret
+
+    def paint(self, p, *args):
+        # p.setRenderHint(p.Antialiasing)
+        # p.drawRect(self.bar.rect())
+        self.bar.paint(p, *args)
+        self.scale_background.paint(p, *args)
+        self.scale_text.paint(p, *args)
+        self.zoom_text.paint(p, *args)
+        '''
+        p.drawRec(0, 0, self.pixmap)
+        if self.border is not None:
+            p.setPen(self.border)
+            p.drawRect(self.boundingRect())
+        '''
+    def mapToData(self, obj):
+        tr = self.inverseDataTransform()
+        return tr.map(obj)
+
+    def inverseDataTransform(self):
+        """Return the transform that maps from this image's local coordinate
+        system to its input array.
+
+        See dataTransform() for more information.
+        """
+        tr = QtGui.QTransform()
+        if self.axisOrder == 'row-major':
+            # transpose
+            tr.scale(1, -1)
+            tr.rotate(-90)
+        return tr
