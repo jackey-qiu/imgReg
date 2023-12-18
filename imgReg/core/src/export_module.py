@@ -56,7 +56,6 @@ def write_im_xml(xml_path, attrList, distributed=False):
     --------
     >>>
     '''
-
     from lxml import etree as ET
     # import xml.etree.ElementTree as ET
     import os

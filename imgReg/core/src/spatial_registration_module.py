@@ -13,7 +13,7 @@ import numpy as np
 # import imreg.samplers
 # from imreg.samplers import sampler
 from scipy import ndimage
-from PySide6 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui
 import pyqtgraph as pg
 
 

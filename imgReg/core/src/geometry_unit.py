@@ -60,6 +60,64 @@ class geometry_widget_wrapper(object):
         self.pushButton_apply.clicked.connect(self.apply_new_state_geo)
         self.pushButton_reset.clicked.connect(self.reset_move_box_geo)
         self.pushButton_save.clicked.connect(self.save_current_state_geo)
+        self.pushButton_tweak_geo.clicked.connect(self.tweak_geo)
+        self.pushButton_select_first.clicked.connect(self.highlightFirstImg)
+        self.pushButton_select_last.clicked.connect(self.highlightLastImg)
+        self.pushButton_next_img.clicked.connect(self.nextImg)
+        self.pushButton_pre_img.clicked.connect(self.preImg)
+
+    def tweak_geo(self):
+        which_item = self.comboBox_tweak_item.currentText()
+        which_sign = '+' if self.comboBox_tweak_sign.currentText()=='positive' else '-'
+        tweak_value = self.doubleSpinBox_tweak_step.value()
+        tweak_value_signed = eval(f'{which_sign}{tweak_value}')
+        if which_item=='x':
+            self.lineEdit_cx.setText(str(float(self.lineEdit_cx.text())+tweak_value_signed))
+        elif which_item == 'y':
+            self.lineEdit_cy.setText(str(float(self.lineEdit_cy.text())+tweak_value_signed))
+        elif which_item == 'rot':
+            self.lineEdit_rot_angle.setText(str(float(self.lineEdit_rot_angle.text())+tweak_value_signed))
+        self.apply_new_state_geo()
+
+    def highlightFirstImg(self):
+        if len(self.field_list)!=0:
+            self._clear_borders()
+            self.update_field_current = self.field_img[0]
+            self._show_border()
+            self.update_geo()
+        else:
+            pass
+
+    def highlightLastImg(self):
+        if len(self.field_list)!=0:
+            self._clear_borders()
+            self.update_field_current = self.field_img[-1]
+            self._show_border()
+            self.update_geo()
+        else:
+            pass
+
+    def nextImg(self):
+        if self.update_field_current == None:
+            pass
+        else:
+            next_ix = self.field_img.index(self.update_field_current)+1
+            if next_ix==len(self.field_list):
+                next_ix = 0
+            self._clear_borders()
+            self.update_field_current = self.field_img[next_ix]
+            self._show_border()
+            self.update_geo()
+
+    def preImg(self):
+        if self.update_field_current == None:
+            pass
+        else:
+            pre_ix = self.field_img.index(self.update_field_current)-1
+            self._clear_borders()
+            self.update_field_current = self.field_img[pre_ix]
+            self._show_border()
+            self.update_geo()
 
     def apply_new_state_geo(self):
         # % apply the settings toward the dataset selected

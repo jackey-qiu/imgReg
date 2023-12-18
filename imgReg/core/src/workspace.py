@@ -211,6 +211,7 @@ class WorkSpace(QMainWindow, MdiFieldImreg_Wrapper, geometry_widget_wrapper, Fid
         self.draw_scalebar()
         self.connect_slots()
         self.imageBuffer.recallImgBackup()
+        self.highlightFirstImg()
         
     @Slot(int)    
     def switch_mode(self, tabIndex):
@@ -248,6 +249,8 @@ class WorkSpace(QMainWindow, MdiFieldImreg_Wrapper, geometry_widget_wrapper, Fid
         """
         :return:
         """
+        #save image buffer sig
+        self.saveimagedb_sig.connect(self.imageBuffer.writeImgBackup)
         #tabwidget signal
         self.tabWidget.tabBarClicked.connect(self.switch_mode)
         #dft slots
@@ -541,7 +544,7 @@ class WorkSpace(QMainWindow, MdiFieldImreg_Wrapper, geometry_widget_wrapper, Fid
                     if ret:
                         d.update(ret)
 
-                self.imageBuffer.load_qi(d, showGUI=True)
+                self.imageBuffer.load_qi(d)
 
             self.settings_object.setValue("FileManager/currentimagedbDir", os.path.dirname(source_path_list[0]))
             self.tbl_render_order.resizeRowsToContents()
@@ -593,7 +596,8 @@ class WorkSpace(QMainWindow, MdiFieldImreg_Wrapper, geometry_widget_wrapper, Fid
         source_path_list, _ = dialog.getSaveFileName(self, "Open .imagedb file to be imported", os.getcwd(), \
                                                      "imagedb files (*.imagedb);;All Files (*)")
         if os.path.exists(os.path.dirname(source_path_list)):
-            self.imageBuffer.writeimagedb(xml_path=source_path_list)
+            # self.imageBuffer.writeimagedb(xml_path=source_path_list)
+            self.imageBuffer.writeImgBackup(path=source_path_list)
         else:
             QtWidgets.QMessageBox.critical(self, "Error",
                                        """<p>Invalid export path.<p>""")
@@ -863,7 +867,7 @@ class WorkSpace(QMainWindow, MdiFieldImreg_Wrapper, geometry_widget_wrapper, Fid
         self.autoRange(padding=0.02)
 
         # // reset the pipeline checkboxes left of the datasets
-        self.clearTicks.emit()
+        # self.clearTicks.emit()
 
         # // go through the project, and set visibility of each sample group to false.
 
@@ -1592,7 +1596,7 @@ class WorkSpace(QMainWindow, MdiFieldImreg_Wrapper, geometry_widget_wrapper, Fid
             time.sleep(0.2)
             event.accept()
         else:
-            event.ignore()
+            event.accept()
 
 class WorkArea(pg.GraphicsObject):
     """
@@ -1809,8 +1813,10 @@ class ImageBufferInfo(QtCore.QObject):
                 geometry_window.show()
                 ret = geometry_window.exec_()
                 # // add the image to the imagebuffer
-                self.addImgBackup(geometry_window.retrieve_attrs())
+            # self._parent.update_geo()
+            # self.addImgBackup(self._parent.attrs_geo)
             img.loc = d
+            self.addImgBackup(d)
 
     def update_opacity(self):
         sb = self.sender()
@@ -1825,10 +1831,13 @@ class ImageBufferInfo(QtCore.QObject):
         self.attrList.append(dict_image)
         self.writeImgBackup()
 
-    def writeImgBackup(self):
+    def writeImgBackup(self, path = None):
         # // flushes the current image buffer to the backup file
         from export_module import write_im_xml
-        write_im_xml(self.img_backup_path, self.attrList, distributed=True)
+        if path == None:
+            write_im_xml(self.img_backup_path, self.attrList, distributed=True)
+        else:
+            write_im_xml(path, self.attrList, distributed=True)
 
     def updateImgBackup(self, newDict):
         """
@@ -1863,7 +1872,8 @@ class ImageBufferInfo(QtCore.QObject):
 
     def writeimagedb(self, xml_path):
         # // save the image buffer to a specified location
-        settings = QtCore.QSettings(self._parent._parent.__appStore__, QtCore.QSettings.IniFormat)
+        #settings = QtCore.QSettings(self._parent._parent.__appStore__, QtCore.QSettings.IniFormat)
+        settings = self._parent.settings_object
         if settings.value('Hardware/CPUthreading') == '1':
             def onDataReady(obj_result):
                 self._parent.thread_func.quit()
@@ -1920,7 +1930,7 @@ class ImageBufferInfo(QtCore.QObject):
         if self.img_backup_path:
             if os.path.exists(self.img_backup_path):
                 dict_list = self.load_imagedb(xml_path=self.img_backup_path)
-                self.attrList += dict_list
+                # self.attrList = dict_list
 
 
 class ImageBufferObject(pg.GraphicsObject):
