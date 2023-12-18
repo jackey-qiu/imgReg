@@ -12,6 +12,7 @@ from util import qt_image_to_array, PandasModel
 import trackpy as tp
 import pandas as pd
 import copy
+from spatial_registration_module import rotatePoint
 
 class particle_widget_wrapper(object):
     """
@@ -24,15 +25,14 @@ class particle_widget_wrapper(object):
         self.markers = None
         self.markers_clicked = None
         self.axis_par = (0,1,2)
-        self.particle_info = pd.DataFrame({}, columns = ['y', 'x', 'mass', 'size', 'ecc', 'signal', 'raw_mass', 'ep', 'frame'])
+        #self.particle_info = pd.DataFrame({}, columns = ['y', 'x', 'mass', 'size', 'ecc', 'signal', 'raw_mass', 'ep', 'frame'])
         # // disable registration mark tab
         # // enable field view
         self.setEnabled(True)
-        self.init_pandas_model()
+        #self.init_pandas_model()
         
-    def init_pandas_model(self, table_view_widget_name='tableView_particle_info'):
+    def init_pandas_model(self, data, table_view_widget_name='tableView_particle_info'):
         #disable_all_tabs_but_one(self, tab_widget_name, tab_indx)
-        data = copy.deepcopy(self.particle_info)
         self.pandas_model = PandasModel(data = data, tableviewer = getattr(self, table_view_widget_name), main_gui=self)
         getattr(self, table_view_widget_name).setModel(self.pandas_model)
         getattr(self, table_view_widget_name).resizeColumnsToContents()
@@ -72,8 +72,8 @@ class particle_widget_wrapper(object):
 
     def track_particle(self):
         np_array_gray = qt_image_to_array(self.update_field_current.pixmap.toImage())
-        self.particle_info = tp.locate(np_array_gray, **self.extract_kwargs_for_locating_particle()).round(1)
-        self.init_pandas_model()
+        particle_info = tp.locate(np_array_gray, **self.extract_kwargs_for_locating_particle()).round(1)
+        self.init_pandas_model(particle_info)
 
     def annotate(self):
         if self.markers!=None:
@@ -81,18 +81,21 @@ class particle_widget_wrapper(object):
         if self.markers_clicked!=None:
             self.field.removeItem(self.markers_clicked)        
         self.markers = pg.ScatterPlotItem(size=10, pen=pg.mkPen(255, 0, 255, 255), brush=pg.mkBrush(255, 255, 255, 120))
-        spots = zip(self.particle_info.x, self.particle_info.y, self.particle_info.mass)
-        spots = [{'pos':[x,y], 'data': value, 'symbol':'+'} for x, y, value in spots]
+        spots = zip(self.pandas_model._data.x, self.pandas_model._data.y, self.pandas_model._data.mass)
+        spots = [{'pos':self.rotate_and_translate([x,y]), 'data': value, 'symbol':'+'} for x, y, value in spots]
         self.markers.addPoints(spots)
         self.field.addItem(self.markers)
 
     def annotate_clicked_row(self, index=None):
         if self.markers_clicked!=None:
             self.field.removeItem(self.markers_clicked)        
-        x = self.particle_info.x.to_list()[index.row()]
-        y = self.particle_info.y.to_list()[index.row()]
-        mass = self.particle_info.mass.to_list()[index.row()]
+        x = self.pandas_model._data.x.to_list()[index.row()]
+        y = self.pandas_model._data.y.to_list()[index.row()]
+        mass = self.pandas_model._data.mass.to_list()[index.row()]
         self.markers_clicked = pg.ScatterPlotItem(size=10, pen=pg.mkPen(0, 255, 0, 255), brush=pg.mkBrush(255, 255, 255, 120))
-        spots = [{'pos':[x,y], 'data': mass, 'symbol':'+'}]
+        spots = [{'pos':self.rotate_and_translate([x,y]), 'data': mass, 'symbol':'+'}]
         self.markers_clicked.addPoints(spots)
         self.field.addItem(self.markers_clicked)
+
+    def rotate_and_translate(self, pot):
+        return np.array(rotatePoint([0,0], pot, self.update_field_current.loc['Rotation'])) + np.array(self.update_field_current.pos())

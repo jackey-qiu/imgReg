@@ -55,11 +55,12 @@ class PandasModel(QtCore.QAbstractTableModel):
         if index.isValid():
             if role in [QtCore.Qt.DisplayRole, QtCore.Qt.EditRole]:
                 return str(self._data.iloc[index.row(), index.column()])
-            #if role == QtCore.Qt.BackgroundRole and index.row()%2 == 0:
+            if role == QtCore.Qt.BackgroundRole and index.row()%2 == 0:
                 # return QtGui.QColor('green')
-                # return QtGui.QColor('DeepSkyBlue')
+                return QtGui.QColor('DeepSkyBlue')
                 #return QtGui.QColor('Blue')
-            # if role == QtCore.Qt.BackgroundRole and index.row()%2 == 1:
+            if role == QtCore.Qt.BackgroundRole and index.row()%2 == 1:
+                return QtGui.QColor('white')
             if role == QtCore.Qt.BackgroundRole:
                 if index.column() in checked_columns:
                     return QtGui.QColor('yellow')
@@ -134,7 +135,7 @@ class PandasModel(QtCore.QAbstractTableModel):
             if index.column() in checked_columns:
                 return (QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEditable | QtCore.Qt.ItemIsUserCheckable)
             else:
-                return (QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable)
+                return (QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsEditable)
             """
             if index.column()==0:
                 return (QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEditable | QtCore.Qt.ItemIsUserCheckable)

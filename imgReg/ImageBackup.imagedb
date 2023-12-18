@@ -1,14 +1,14 @@
 <?xml version='1.0' encoding='WINDOWS-1252'?>
 <ImageMap>
   <Image0>
-    <Filename>Picture4.png</Filename>
-    <Opacity>80</Opacity>
+    <Filename>preview.jpg</Filename>
+    <Opacity>100</Opacity>
     <Visible>TRUE</Visible>
     <Rotation>0.0</Rotation>
-    <Center>193.5,138.0</Center>
-    <Size>387.0,276.0</Size>
+    <Center>50000.0,50000.0</Center>
+    <Size>1977.0,1911.0</Size>
     <Focus>-0.5</Focus>
-    <BaseFolder>C:/Users/qiucanro/Downloads</BaseFolder>
+    <BaseFolder>C:/Users/qiucanro/Desktop/img_reg/trackpy</BaseFolder>
   </Image0>
   <Data>
     <ImageCount>1</ImageCount>
