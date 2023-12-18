@@ -6,10 +6,11 @@
 import sys, os
 from pathlib import Path
 import numpy as np
+import pandas as pd
 import pyqtgraph as pg
 import pyqtgraph.functions as fn
 from PyQt5 import QtGui, QtCore, QtWidgets, uic
-from PyQt5.QtWidgets import QMainWindow, QApplication,QMessageBox
+from PyQt5.QtWidgets import QMainWindow, QApplication,QMessageBox, QAbstractItemView
 from PyQt5.QtCore import pyqtSignal as Signal
 from PyQt5.QtCore import pyqtSlot as Slot
 from settings_unit import ScaleBar
@@ -17,9 +18,11 @@ from geometry_unit import geometry_dialog, geometry_widget_wrapper
 from field_dft_registration import mdi_field_imreg_show, MdiFieldImreg_Wrapper
 from spatial_registration_module import rotatePoint
 from field_fiducial_markers_unit import FiducialMarkerWidget, FiducialMarkerWidget_wrapper
+from particle_tool import particle_widget_wrapper
 from field_tools import FieldViewBox
 from utility_widgets import check_true
 from importmodule import load_im_xml, load_align_xml
+from util import PandasModel
 
 setting_file = str(Path(__file__).parent.parent.parent / 'config' / 'appsettings.ini')
 ui_file_folder = Path(__file__).parent.parent / 'ui'
@@ -41,7 +44,7 @@ def quick_min_max(data):
         data = data[sl]
     return nanmin(data), nanmax(data)
 
-class WorkSpace(QMainWindow, MdiFieldImreg_Wrapper, geometry_widget_wrapper, FiducialMarkerWidget_wrapper):
+class WorkSpace(QMainWindow, MdiFieldImreg_Wrapper, geometry_widget_wrapper, FiducialMarkerWidget_wrapper, particle_widget_wrapper):
     """
     Main class of the workspace
     """
@@ -67,6 +70,7 @@ class WorkSpace(QMainWindow, MdiFieldImreg_Wrapper, geometry_widget_wrapper, Fid
         MdiFieldImreg_Wrapper.__init__(self)
         geometry_widget_wrapper.__init__(self)
         FiducialMarkerWidget_wrapper.__init__(self)
+        particle_widget_wrapper.__init__(self)
         self.setMinimumSize(800, 600)
         self.widget_terminal.update_name_space('gui', self)
         self._parent = self
@@ -225,7 +229,7 @@ class WorkSpace(QMainWindow, MdiFieldImreg_Wrapper, geometry_widget_wrapper, Fid
             self.field.set_mode('dft')
             if hasattr(self, 'move_box'):
                 self.move_box.hide()
-        elif 'geometry' in tabText:
+        elif 'geometry' in tabText or 'particle' in tabText:
             self.field.set_mode('select')
             self.update_geo()
             if hasattr(self, 'move_box'):
@@ -259,6 +263,8 @@ class WorkSpace(QMainWindow, MdiFieldImreg_Wrapper, geometry_widget_wrapper, Fid
         self.connect_slots_fiducial()
         #geo slots
         self.connect_slots_geo()
+        #particle slots
+        self.connect_slots_par()
         #widget events
         self.bt_removeMenu.setMenu(QtWidgets.QMenu(self.bt_removeMenu))
         self.bt_removeMenu.clicked.connect(self.bt_removeMenu.showMenu)

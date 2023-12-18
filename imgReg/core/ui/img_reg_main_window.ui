@@ -895,7 +895,170 @@
               <attribute name="title">
                <string>Particle</string>
               </attribute>
-              <layout class="QVBoxLayout" name="verticalLayout_10"/>
+              <layout class="QVBoxLayout" name="verticalLayout_11">
+               <item>
+                <widget class="QGroupBox" name="groupBox">
+                 <property name="title">
+                  <string>Particle Tracking</string>
+                 </property>
+                 <layout class="QVBoxLayout" name="verticalLayout_10">
+                  <item>
+                   <layout class="QGridLayout" name="gridLayout_4">
+                    <item row="0" column="1">
+                     <widget class="QLineEdit" name="lineEdit_diameter">
+                      <property name="inputMask">
+                       <string/>
+                      </property>
+                      <property name="text">
+                       <string>11</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item row="0" column="0">
+                     <widget class="QLabel" name="label_8">
+                      <property name="sizePolicy">
+                       <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                        <horstretch>0</horstretch>
+                        <verstretch>0</verstretch>
+                       </sizepolicy>
+                      </property>
+                      <property name="text">
+                       <string>Diameter (pixl)</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item row="0" column="2">
+                     <widget class="QLabel" name="label_9">
+                      <property name="sizePolicy">
+                       <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                        <horstretch>0</horstretch>
+                        <verstretch>0</verstretch>
+                       </sizepolicy>
+                      </property>
+                      <property name="text">
+                       <string>minMass</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item row="0" column="4">
+                     <widget class="QLabel" name="label_14">
+                      <property name="sizePolicy">
+                       <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                        <horstretch>0</horstretch>
+                        <verstretch>0</verstretch>
+                       </sizepolicy>
+                      </property>
+                      <property name="text">
+                       <string>maxSize</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item row="1" column="1">
+                     <widget class="QComboBox" name="comboBox_invert">
+                      <item>
+                       <property name="text">
+                        <string>True</string>
+                       </property>
+                      </item>
+                      <item>
+                       <property name="text">
+                        <string>False</string>
+                       </property>
+                      </item>
+                     </widget>
+                    </item>
+                    <item row="0" column="5">
+                     <widget class="QLineEdit" name="lineEdit_maxsize">
+                      <property name="text">
+                       <string>111</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item row="1" column="0">
+                     <widget class="QLabel" name="label_15">
+                      <property name="sizePolicy">
+                       <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                        <horstretch>0</horstretch>
+                        <verstretch>0</verstretch>
+                       </sizepolicy>
+                      </property>
+                      <property name="text">
+                       <string>invert</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item row="0" column="3">
+                     <widget class="QLineEdit" name="lineEdit_minmass">
+                      <property name="text">
+                       <string>0</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item row="1" column="2">
+                     <widget class="QLabel" name="label_16">
+                      <property name="text">
+                       <string>noise_size</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item row="1" column="4">
+                     <widget class="QLabel" name="label_17">
+                      <property name="text">
+                       <string>threshold</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item row="1" column="5">
+                     <widget class="QLineEdit" name="lineEdit_threshold">
+                      <property name="text">
+                       <string>1</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item row="1" column="3">
+                     <widget class="QDoubleSpinBox" name="doubleSpinBox_noise_size"/>
+                    </item>
+                   </layout>
+                  </item>
+                  <item>
+                   <layout class="QHBoxLayout" name="horizontalLayout_4">
+                    <item>
+                     <widget class="QPushButton" name="pushButton_locate">
+                      <property name="text">
+                       <string>Track</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QPushButton" name="pushButton_save_locate_settings">
+                      <property name="text">
+                       <string>SaveSettings</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QPushButton" name="pushButton_annotate_particle">
+                      <property name="text">
+                       <string>Annotate</string>
+                      </property>
+                     </widget>
+                    </item>
+                   </layout>
+                  </item>
+                 </layout>
+                </widget>
+               </item>
+               <item>
+                <widget class="QLabel" name="label_7">
+                 <property name="text">
+                  <string>Particle Tracking Results</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QTableView" name="tableView_particle_info"/>
+               </item>
+              </layout>
              </widget>
              <widget class="QWidget" name="tab_7">
               <attribute name="title">
