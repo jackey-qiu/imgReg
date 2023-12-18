@@ -1,26 +1,16 @@
 <?xml version='1.0' encoding='WINDOWS-1252'?>
 <ImageMap>
   <Image0>
-    <Filename>Picture5.png</Filename>
-    <Opacity>50</Opacity>
+    <Filename>Picture4.png</Filename>
+    <Opacity>80</Opacity>
     <Visible>TRUE</Visible>
-    <Rotation>1.2858822042774567</Rotation>
-    <Center>50001.21873956929,49997.66874127352</Center>
-    <Size>233.31450911187858,165.9659910177288</Size>
+    <Rotation>0.0</Rotation>
+    <Center>193.5,138.0</Center>
+    <Size>387.0,276.0</Size>
     <Focus>-0.5</Focus>
     <BaseFolder>C:/Users/qiucanro/Downloads</BaseFolder>
   </Image0>
-  <Image1>
-    <Filename>Picture4.png</Filename>
-    <Opacity>100</Opacity>
-    <Visible>TRUE</Visible>
-    <Rotation>0.0</Rotation>
-    <Center>49647.42616532247,49694.43600994616</Center>
-    <Size>256.77921514451737,183.12936273870582</Size>
-    <Focus>-0.5</Focus>
-    <BaseFolder>C:/Users/qiucanro/Downloads</BaseFolder>
-  </Image1>
   <Data>
-    <ImageCount>2</ImageCount>
+    <ImageCount>1</ImageCount>
   </Data>
 </ImageMap>

@@ -143,12 +143,12 @@ class PandasModel(QtCore.QAbstractTableModel):
             """
     def sort(self, Ncol, order):
         """Sort table by given column number."""
-        self._data['sort_me'] = self._data[self._data.columns.tolist()[Ncol]]
+        #self._data['sort_me'] = self._data[self._data.columns.tolist()[Ncol]]
         self.layoutAboutToBeChanged.emit()
-        self._data = self._data.sort_values('sort_me',
+        self._data = self._data.sort_values(self._data.columns.tolist()[Ncol],
                                         ascending=order == QtCore.Qt.AscendingOrder, ignore_index = True)
         # self._data = self._data.sort_values(self._data.columns.tolist()[Ncol],
                                         # ascending=order == QtCore.Qt.AscendingOrder, ignore_index = True, key=_to_pinyin)
         self.dataChanged.emit(self.createIndex(0, 0), self.createIndex(self.rowCount(0), self.columnCount(0)))
         self.layoutChanged.emit()
-        self._data.drop(columns='sort_me', inplace=True)
+        # self._data.drop(columns='sort_me', inplace=True)
