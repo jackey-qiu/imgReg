@@ -4,6 +4,7 @@ from pathlib import Path
 from PyQt5 import QtCore, QtGui, QtWidgets, uic
 from PyQt5.QtCore import pyqtSignal as Signal
 from spatial_registration_module import rotatePoint
+from util import qt_image_to_array
 import pyqtgraph as pg
 import numpy as np
 import math
@@ -41,6 +42,7 @@ class geometry_widget_wrapper(object):
     #callback whenever switch to a different image, being called once
     def update_geo(self):
         self.attrs_geo = self.update_field_current.loc
+        self.img_array_gray = qt_image_to_array(self.update_field_current.pixmap.toImage())
         self.shape_geo = (self.update_field_current.width, self.update_field_current.height, 1)
         # % get length from outline
         if not 'Outline' in self.attrs_geo.keys():

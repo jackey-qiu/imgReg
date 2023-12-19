@@ -103,6 +103,8 @@ class particle_widget_wrapper(object):
         spots = [{'pos':self.scale_rotate_and_translate([x,y]), 'data': value, 'symbol':'+'} for x, y, value in spots]
         self.markers.addPoints(spots)
         self.field.addItem(self.markers)
+        self.markers.setZValue(10)
+        self.update_field_current.setZValue(0)
 
     def annotate_clicked_row(self, index=None):
         if self.markers_clicked!=None:
@@ -114,6 +116,7 @@ class particle_widget_wrapper(object):
         spots = [{'pos':self.scale_rotate_and_translate([x,y]), 'data': mass, 'symbol':'+'}]
         self.markers_clicked.addPoints(spots)
         self.field.addItem(self.markers_clicked)
+        self.markers_clicked.setZValue(20)
 
     def scale_rotate_and_translate(self, pot):
         return np.array(rotatePoint([0,0], np.array(pot) * np.array(self.update_field_current._scale), self.update_field_current.loc['Rotation'])) + np.array(self.update_field_current.pos())

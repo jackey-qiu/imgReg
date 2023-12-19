@@ -12,6 +12,8 @@ from pyqtgraph.graphicsItems.ViewBox.ViewBoxMenu import ViewBoxMenu
 import weakref
 from PyQt5.QtCore import pyqtSignal as Signal
 from PyQt5.QtCore import pyqtSlot as Slot
+from spatial_registration_module import rotatePoint
+
 
 import field_area_tool
 
@@ -309,6 +311,14 @@ class FieldViewBox(pg.ViewBox):
         dis = math.sqrt(dX**2+dY**2)
         self.distanceMeasuredClicked_sig.emit(dis, dX, dY)
 
+    def _scale_rotate_and_translate(self, pot):
+        coords = np.array(rotatePoint([0,0], (np.array(pot)-np.array(self._parent.update_field_current.pos())) * (1/np.array(self._parent.update_field_current._scale)), -self._parent.update_field_current.loc['Rotation']))
+        coords = [int(each) for each in coords]
+        if coords[0]<0 or coords[1]<0 or coords[0]>=self._parent.shape_geo[0] or coords[1]>=self._parent.shape_geo[1]:
+            return False, coords
+        else:
+            return True, coords
+    
     def mouseMoved_custom(self,evt):
         if self.mode=='distance_measure':
             if self.sceneBoundingRect().contains(evt):
@@ -330,7 +340,12 @@ class FieldViewBox(pg.ViewBox):
                 mousePoint = self.mapSceneToView(evt)
                 self.activeScanTool.setPoints([[x['pos'].x(),x['pos'].y()] for x in self.activeScanTool.handles[:-1]]+[[mousePoint.x(),mousePoint.y()]])
         elif self.mode=='select':
-            self._parent.statusbar.showMessage(str(self.mapSceneToView(evt)))
+            x, y = self.mapSceneToView(evt).x(), self.mapSceneToView(evt).y()
+            in_side_scene, coords = self._scale_rotate_and_translate([x,y])
+            if not in_side_scene:
+                self._parent.statusbar.showMessage('viewport coords:'+str(self.mapSceneToView(evt)))
+            else:
+                self._parent.statusbar.showMessage('viewport coords:'+str(self.mapSceneToView(evt))+'obj coords:'+str(coords) + 'pix ntensity:'+str(self._parent.img_array_gray[coords[1], coords[0]]))
 
     def mouseDragFinishedEvent(self, ev):
         print(ev, self.mode)

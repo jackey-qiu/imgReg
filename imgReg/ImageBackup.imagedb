@@ -1,42 +1,24 @@
 <?xml version='1.0' encoding='WINDOWS-1252'?>
 <ImageMap>
   <Image0>
-    <Filename>Picture4.png</Filename>
-    <Opacity>50</Opacity>
+    <Filename>Picture5.png</Filename>
+    <Opacity>100</Opacity>
     <Visible>TRUE</Visible>
-    <Rotation>0.0</Rotation>
+    <Rotation>2.051711323263153</Rotation>
     <Particle>
-      <diameter>25</diameter>
-      <minmass>100.0</minmass>
-      <maxsize>111.0</maxsize>
+      <diameter>51</diameter>
+      <minmass>1000</minmass>
+      <maxsize>111</maxsize>
       <invert>False</invert>
-      <noise_size>4.0</noise_size>
-      <threshold>10.0</threshold>
+      <noise_size>2</noise_size>
+      <threshold>10</threshold>
     </Particle>
-    <Center>47609.4932385908,48861.42873838027</Center>
-    <Size>2696.4357670087484,1923.0394617427955</Size>
+    <Center>49667.51798098088,49778.149338602205</Center>
+    <Size>388.0,276.0</Size>
     <Focus>-0.5</Focus>
     <BaseFolder>C:/Users/qiucanro/Desktop/img_reg/trackpy</BaseFolder>
   </Image0>
-  <Image1>
-    <Filename>preview.jpg</Filename>
-    <Opacity>100</Opacity>
-    <Visible>TRUE</Visible>
-    <Rotation>0.0</Rotation>
-    <Particle>
-      <diameter>31</diameter>
-      <minmass>100.0</minmass>
-      <maxsize>111.0</maxsize>
-      <invert>True</invert>
-      <noise_size>3.0</noise_size>
-      <threshold>10.0</threshold>
-    </Particle>
-    <Center>50000.0,50000.0</Center>
-    <Size>1977.0,1911.0</Size>
-    <Focus>-0.5</Focus>
-    <BaseFolder>C:/Users/qiucanro/Desktop/img_reg/trackpy</BaseFolder>
-  </Image1>
   <Data>
-    <ImageCount>2</ImageCount>
+    <ImageCount>1</ImageCount>
   </Data>
 </ImageMap>
