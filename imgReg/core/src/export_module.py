@@ -54,6 +54,15 @@ def write_im_xml(xml_path, attrList, distributed=False):
 
     Examples
     --------
+            kwargs = {
+            'diameter': int(self.lineEdit_diameter.text()),
+            'minmass': float(self.lineEdit_minmass.text()),
+            'maxsize': float(self.lineEdit_maxsize.text()),
+            'invert': self.comboBox_invert.currentText()=='True',
+            'noise_size': float(self.doubleSpinBox_noise_size.value()),
+            'threshold': float(self.lineEdit_threshold.text())
+        }
+        retu
     >>>
     '''
     from lxml import etree as ET
@@ -67,6 +76,20 @@ def write_im_xml(xml_path, attrList, distributed=False):
         Opacity = ET.SubElement(imageitem, "Opacity")
         Visible = ET.SubElement(imageitem, "Visible")
         Rotation = ET.SubElement(imageitem, "Rotation")
+        particle = ET.SubElement(imageitem, "Particle")
+        #fill in particle fit pars
+        particle_diameter = ET.SubElement(particle, "diameter")
+        particle_minmass = ET.SubElement(particle, "minmass")
+        particle_maxsize = ET.SubElement(particle, "maxsize")
+        particle_invert = ET.SubElement(particle, "invert")
+        particle_noise_size = ET.SubElement(particle, "noise_size")
+        particle_threshold = ET.SubElement(particle, "threshold")
+        particle_diameter.text = '51' if 'diameter' not in d else str(d['diameter'])
+        particle_minmass.text = '1000' if 'minmass' not in d else str(d['minmass'])
+        particle_maxsize.text = '111' if 'maxsize' not in d else str(d['maxsize'])
+        particle_invert.text = 'False' if 'invert' not in d else str(d['invert'])
+        particle_noise_size.text = '2' if 'noise_size' not in d else str(d['noise_size'])
+        particle_threshold.text = '10' if 'threshold' not in d else str(d['threshold'])
 
         # // recalculate_all the center and size based on the given outline
         d["Center"] = [0] * 3

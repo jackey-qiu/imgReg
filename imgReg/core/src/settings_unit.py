@@ -191,7 +191,7 @@ class ScaleBar(pg.GraphicsObject, scaleAnchor):
         view = self.parentItem()
         if view is None:
             return
-        view.sigRangeChanged.connect(self.updateDelay)
+        # view.sigRangeChanged.connect(self.updateDelay)
         self.updateDelay()
 
     def update_color(self, color):

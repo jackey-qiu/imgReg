@@ -64,11 +64,29 @@ class particle_widget_wrapper(object):
             'threshold': float(self.lineEdit_threshold.text())
         }
         return kwargs
+    
+    def set_pars_for_locating_particle_on_gui(self):
+        kwargs = self.update_field_current.loc
+        setfunc_map = {
+            'diameter': self.lineEdit_diameter.setText,
+            'minmass': self.lineEdit_minmass.setText,
+            'maxsize': self.lineEdit_maxsize.setText,
+            'invert': self.comboBox_invert.setCurrentText,
+            'noise_size': lambda str_val: self.doubleSpinBox_noise_size.setValue(float(str_val)),
+            'threshold': self.lineEdit_threshold.setText,
+        }
+        for each in kwargs:
+            if each in setfunc_map:
+                setfunc_map[each](kwargs[each])
+
+    def update_partical_tracking_pars(self):
+        self.update_field_current.loc.update(self.extract_kwargs_for_locating_particle())
 
     def connect_slots_par(self):
         self.pushButton_locate.clicked.connect(self.track_particle)
         self.pushButton_annotate_particle.clicked.connect(self.annotate)
         self.tableView_particle_info.clicked.connect(self.annotate_clicked_row)
+        self.pushButton_save_locate_settings.clicked.connect(self.update_partical_tracking_pars)
 
     def track_particle(self):
         np_array_gray = qt_image_to_array(self.update_field_current.pixmap.toImage())

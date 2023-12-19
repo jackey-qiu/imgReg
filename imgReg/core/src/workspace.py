@@ -234,6 +234,8 @@ class WorkSpace(QMainWindow, MdiFieldImreg_Wrapper, geometry_widget_wrapper, Fid
             self.update_geo()
             if hasattr(self, 'move_box'):
                 self.move_box.show()
+            if 'particle' in tabText:#filled the save pars for particle tracking
+                self.set_pars_for_locating_particle_on_gui()
 
     def set_cursor_icon(self, cursor_type="cross"):
         """

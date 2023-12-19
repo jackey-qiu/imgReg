@@ -224,7 +224,9 @@ def load_im_xml(xml_path, exclude_file, progressbar=''):
                     if "BaseFolder" in tag_list:
                         attrs['BaseFolder'] = root[i].find("BaseFolder").text
                         attrs['Path'] = os.path.join(attrs['BaseFolder'], root[i].find("Filename").text)
-
+                    if 'Particle' in tag_list:
+                        for jj, child_par in enumerate(root[i].find('Particle')):
+                            attrs[child_par.tag] = child_par.text
                     c = attrs['Center']
                     s = attrs['Size']
                     z = attrs['Focus']

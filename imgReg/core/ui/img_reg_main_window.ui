@@ -1027,6 +1027,19 @@
                   <item>
                    <layout class="QHBoxLayout" name="horizontalLayout_4">
                     <item>
+                     <spacer name="horizontalSpacer_4">
+                      <property name="orientation">
+                       <enum>Qt::Horizontal</enum>
+                      </property>
+                      <property name="sizeHint" stdset="0">
+                       <size>
+                        <width>40</width>
+                        <height>20</height>
+                       </size>
+                      </property>
+                     </spacer>
+                    </item>
+                    <item>
                      <widget class="QPushButton" name="pushButton_locate">
                       <property name="text">
                        <string>Track</string>
@@ -1034,16 +1047,16 @@
                      </widget>
                     </item>
                     <item>
-                     <widget class="QPushButton" name="pushButton_save_locate_settings">
+                     <widget class="QPushButton" name="pushButton_annotate_particle">
                       <property name="text">
-                       <string>SaveSettings</string>
+                       <string>Annotate</string>
                       </property>
                      </widget>
                     </item>
                     <item>
-                     <widget class="QPushButton" name="pushButton_annotate_particle">
+                     <widget class="QPushButton" name="pushButton_save_locate_settings">
                       <property name="text">
-                       <string>Annotate</string>
+                       <string>SaveSettings</string>
                       </property>
                      </widget>
                     </item>
@@ -1100,7 +1113,7 @@
      <x>0</x>
      <y>0</y>
      <width>1412</width>
-     <height>23</height>
+     <height>21</height>
     </rect>
    </property>
   </widget>
