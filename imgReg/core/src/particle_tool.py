@@ -82,7 +82,7 @@ class particle_widget_wrapper(object):
             self.field.removeItem(self.markers_clicked)        
         self.markers = pg.ScatterPlotItem(size=10, pen=pg.mkPen(255, 0, 255, 255), brush=pg.mkBrush(255, 255, 255, 120))
         spots = zip(self.pandas_model._data.x, self.pandas_model._data.y, self.pandas_model._data.mass)
-        spots = [{'pos':self.rotate_and_translate([x,y]), 'data': value, 'symbol':'+'} for x, y, value in spots]
+        spots = [{'pos':self.scale_rotate_and_translate([x,y]), 'data': value, 'symbol':'+'} for x, y, value in spots]
         self.markers.addPoints(spots)
         self.field.addItem(self.markers)
 
@@ -93,9 +93,9 @@ class particle_widget_wrapper(object):
         y = self.pandas_model._data.y.to_list()[index.row()]
         mass = self.pandas_model._data.mass.to_list()[index.row()]
         self.markers_clicked = pg.ScatterPlotItem(size=10, pen=pg.mkPen(0, 255, 0, 255), brush=pg.mkBrush(255, 255, 255, 120))
-        spots = [{'pos':self.rotate_and_translate([x,y]), 'data': mass, 'symbol':'+'}]
+        spots = [{'pos':self.scale_rotate_and_translate([x,y]), 'data': mass, 'symbol':'+'}]
         self.markers_clicked.addPoints(spots)
         self.field.addItem(self.markers_clicked)
 
-    def rotate_and_translate(self, pot):
-        return np.array(rotatePoint([0,0], pot, self.update_field_current.loc['Rotation'])) + np.array(self.update_field_current.pos())
+    def scale_rotate_and_translate(self, pot):
+        return np.array(rotatePoint([0,0], np.array(pot) * np.array(self.update_field_current._scale), self.update_field_current.loc['Rotation'])) + np.array(self.update_field_current.pos())
