@@ -1601,10 +1601,9 @@ class WorkSpace(QMainWindow, MdiFieldImreg_Wrapper, geometry_widget_wrapper, Fid
         if reply == QMessageBox.Yes:
             print('saving the image to db')
             self.saveimagedb_sig.emit()
-            time.sleep(0.2)
             event.accept()
-        else:
-            event.accept()
+        elif reply == QMessageBox.No:
+            event.ignore()
 
 class WorkArea(pg.GraphicsObject):
     """

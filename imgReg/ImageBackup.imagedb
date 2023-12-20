@@ -1,24 +1,60 @@
 <?xml version='1.0' encoding='WINDOWS-1252'?>
 <ImageMap>
   <Image0>
-    <Filename>Picture5.png</Filename>
+    <Filename>curcumin-nanoparticles.png</Filename>
     <Opacity>100</Opacity>
     <Visible>TRUE</Visible>
-    <Rotation>2.051711323263153</Rotation>
+    <Rotation>0.0</Rotation>
     <Particle>
-      <diameter>51</diameter>
-      <minmass>1000</minmass>
-      <maxsize>111</maxsize>
-      <invert>False</invert>
-      <noise_size>2</noise_size>
-      <threshold>10</threshold>
+      <diameter>21</diameter>
+      <minmass>100.0</minmass>
+      <maxsize>111.0</maxsize>
+      <invert>True</invert>
+      <noise_size>2.0</noise_size>
+      <threshold>10.0</threshold>
     </Particle>
-    <Center>49667.51798098088,49778.149338602205</Center>
-    <Size>388.0,276.0</Size>
+    <Center>50000.0,50000.0</Center>
+    <Size>850.0,723.0</Size>
     <Focus>-0.5</Focus>
     <BaseFolder>C:/Users/qiucanro/Desktop/img_reg/trackpy</BaseFolder>
   </Image0>
+  <Image1>
+    <Filename>preview.jpg</Filename>
+    <Opacity>100</Opacity>
+    <Visible>TRUE</Visible>
+    <Rotation>0.0</Rotation>
+    <Particle>
+      <diameter>31</diameter>
+      <minmass>100.0</minmass>
+      <maxsize>111.0</maxsize>
+      <invert>True</invert>
+      <noise_size>4.0</noise_size>
+      <threshold>10.0</threshold>
+    </Particle>
+    <Center>48067.70116218838,49379.510461750666</Center>
+    <Size>1977.0,1911.0</Size>
+    <Focus>-0.5</Focus>
+    <BaseFolder>C:/Users/qiucanro/Desktop/img_reg/trackpy</BaseFolder>
+  </Image1>
+  <Image2>
+    <Filename>Picture4.png</Filename>
+    <Opacity>100</Opacity>
+    <Visible>TRUE</Visible>
+    <Rotation>0.0</Rotation>
+    <Particle>
+      <diameter>31</diameter>
+      <minmass>100.0</minmass>
+      <maxsize>111.0</maxsize>
+      <invert>False</invert>
+      <noise_size>4.0</noise_size>
+      <threshold>10.0</threshold>
+    </Particle>
+    <Center>49709.2491791616,48802.606834611746</Center>
+    <Size>387.0,276.0</Size>
+    <Focus>-0.5</Focus>
+    <BaseFolder>C:/Users/qiucanro/Desktop/img_reg/trackpy</BaseFolder>
+  </Image2>
   <Data>
-    <ImageCount>1</ImageCount>
+    <ImageCount>3</ImageCount>
   </Data>
 </ImageMap>

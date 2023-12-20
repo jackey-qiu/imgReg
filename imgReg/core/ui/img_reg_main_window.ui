@@ -1043,6 +1043,27 @@
                      </spacer>
                     </item>
                     <item>
+                     <widget class="QLabel" name="label_18">
+                      <property name="text">
+                       <string>Track method</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QComboBox" name="comboBox_locate_method">
+                      <item>
+                       <property name="text">
+                        <string>locate</string>
+                       </property>
+                      </item>
+                      <item>
+                       <property name="text">
+                        <string>locate_brightfield_ring</string>
+                       </property>
+                      </item>
+                     </widget>
+                    </item>
+                    <item>
                      <widget class="QPushButton" name="pushButton_locate">
                       <property name="text">
                        <string>Track</string>
