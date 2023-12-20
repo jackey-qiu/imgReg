@@ -796,7 +796,6 @@ class WorkSpace(QMainWindow, MdiFieldImreg_Wrapper, geometry_widget_wrapper, Fid
         if enabled:
             self.sb.show()
         else:
-            print("hiding scalebar")
             self.sb.hide()
 
     def delete(self, row):
@@ -1595,13 +1594,17 @@ class WorkSpace(QMainWindow, MdiFieldImreg_Wrapper, geometry_widget_wrapper, Fid
 
     def closeEvent(self, event):
         import time
-        quit_msg = "About to Exit the program, do you want to save the current settings? "
+        quit_msg = "About to Exit the program, are you sure? "
         reply = QMessageBox.question(self, 'Message', 
                         quit_msg, QMessageBox.Yes, QMessageBox.No)
-        if reply == QMessageBox.Yes:
-            print('saving the image to db')
-            self.saveimagedb_sig.emit()
-            event.accept()
+        if reply == QMessageBox.Yes:        
+            reply2 = QMessageBox.question(self, 'Message', 
+                        "Do you want to save the image setting to db before exit?", QMessageBox.Yes, QMessageBox.No)
+            if reply2 == QMessageBox.Yes:
+                self.saveimagedb_sig.emit()
+                event.accept()
+            else:
+                event.accept()
         elif reply == QMessageBox.No:
             event.ignore()
 
