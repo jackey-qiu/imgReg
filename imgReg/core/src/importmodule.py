@@ -229,8 +229,9 @@ def load_im_xml(xml_path, exclude_file, progressbar=''):
                             attrs[child_par.tag] = child_par.text
                     c = attrs['Center']
                     s = attrs['Size']
+                    #z is not used
                     z = attrs['Focus']
-                    outline = [(c[0] - s[0] / 2.0), (c[0] + s[0] / 2.0), (c[1] - s[1] / 2.0), (c[1] + s[1] / 2.0), z, z]
+                    outline = [(c[0] - s[0] / 2.0), (c[0] + s[0] / 2.0), (c[1] - s[1] / 2.0), (c[1] + s[1] / 2.0), -0.5, 0.5]
                     attrs['Outline'] = outline
                     attrs['Parent'] = ""
                     attrs['NodeType'] = 'RGBA'

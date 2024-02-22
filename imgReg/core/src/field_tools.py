@@ -312,12 +312,11 @@ class FieldViewBox(pg.ViewBox):
         self.distanceMeasuredClicked_sig.emit(dis, dX, dY)
 
     def _scale_rotate_and_translate(self, pot):
+        if self._parent.update_field_current==None:
+            return False, pot
         coords = np.array(rotatePoint([0,0], (np.array(pot)-np.array(self._parent.update_field_current.pos())) * (1/np.array(self._parent.update_field_current._scale)), -self._parent.update_field_current.loc['Rotation']))
         coords = [int(each) for each in coords]
-        if coords[0]<0 or coords[1]<0 or coords[0]>=self._parent.shape_geo[0] or coords[1]>=self._parent.shape_geo[1]:
-            return False, coords
-        else:
-            return True, coords
+        return self._parent.update_field_current.isUnderMouse(), coords
     
     def mouseMoved_custom(self,evt):
         if self.mode=='distance_measure':
@@ -427,9 +426,11 @@ class FieldViewBox(pg.ViewBox):
                 view_point = view.mapToView(pos)
                 # // check outline of every image displayed and check if the viewposition lies within their outline
                 clicked_list = []
-                self.clear_selection()
                 # // select another dataset
                 for k in self._parent.field_img:
+                    if k.isUnderMouse():
+                        clicked_list.append(k)
+                    '''
                     if hasattr(k,'loc'):
                         if isinstance(k.loc, dict):
                             if "Outline" in k.loc.keys():
@@ -442,9 +443,12 @@ class FieldViewBox(pg.ViewBox):
                         if im_pos.contains(view_point):
                             # // if the clicked point belongs to an image, add it to the list
                             clicked_list.append(k)
+                    '''
                 #print(view_point)
                 #print(clicked_list)
-                self.select_single_image(clicked_list)
+                if len(clicked_list)>0:
+                    self.clear_selection()
+                    self.select_single_image(clicked_list)
 
         elif ev.button() == QtCore.Qt.RightButton and self.menuEnabled():
             ev.accept()

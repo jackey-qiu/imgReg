@@ -7,7 +7,6 @@ import pyqtgraph as pg
 import numpy as np
 import copy
 import math
-from spatial_registration_module import registration_dft_slice
 from spatial_registration_module import rotatePoint
 from PyQt5 import QtGui, QtCore, QtWidgets, uic
 from PyQt5.QtCore import pyqtSignal as Signal
@@ -137,6 +136,29 @@ def mdi_field_imreg_show(self):
     self.mdi_field_registration_widget.show()
     self.mdi_field_registration_widget.exec_()
 
+class DFTRegistration(QtCore.QObject):
+
+    sig_dft_finished = QtCore.pyqtSignal(object)
+    sig_dft_status = QtCore.pyqtSignal(str)
+
+    def __init__(self):
+        super().__init__()
+        self.reference_sub_frame = None
+        self.target_zoom_frame = None
+
+    def prepare_dft(self, reference, target):
+        self.reference_sub_frame = reference
+        self.target_zoom_frame = target
+
+    def perform_dft(self):
+        from spatial_registration_module import registration_dft_slice
+        self.sig_dft_status.emit('Start DFT registration..')
+        vector_dict = registration_dft_slice(self.reference_sub_frame, self.target_zoom_frame, iterations=5, \
+                                                display=False,  progressbar=None,
+                                                display_window=None)
+        self.sig_dft_status.emit('DFT registration is finished!')
+        self.sig_dft_finished.emit(vector_dict)
+
 class MdiFieldImreg_Wrapper(object):
     """
     class around the GUI for image registration based on DFT-based input
@@ -155,8 +177,16 @@ class MdiFieldImreg_Wrapper(object):
         self.target_outline = [0,0,0,0,0,0]
         self.reference_frame = np.zeros((0, 0))
         self.reference_outline = [0,0,0,0,0,0]
+        self.dft_reg_instance = DFTRegistration()
+        self.dft_reg_thread = QtCore.QThread()
+        self.dft_reg_instance.moveToThread(self.dft_reg_thread)
+        self.dft_reg_thread.started.connect(self.dft_reg_instance.perform_dft)
         # self.setMinimumWidth(self._parent.dock_properties.size().width() - 40)
         # self.connect_slots()
+
+    @QtCore.pyqtSlot(str)
+    def update_status(self,string):
+        self.statusbar.showMessage(string)
 
     def connect_slots_dft(self):
         """
@@ -169,18 +199,63 @@ class MdiFieldImreg_Wrapper(object):
         # self.updateFieldMode_sig.connect(self.field.set_mode)
         self.field.rectangleSelected_sig.connect(self.set_reference_zone)
         #connect widget events
-        self.bt_registration.clicked.connect(self.dft_imreg2)
+        self.bt_registration.clicked.connect(self.prepare_dft)
         self.pushButton_move.clicked.connect(self.translate_target)
         self.bt_add_ref.clicked.connect(self.add_reference)
         self.bt_add_target.clicked.connect(self.add_target)
         self.pushButton_roi_on_target.clicked.connect(self.extract_target_sub_frame)
         self.pushButton_roi_on_reference.clicked.connect(self.extract_ref_sub_frame)
+        self.dft_reg_instance.sig_dft_status.connect(self.update_status)
+        self.dft_reg_instance.sig_dft_finished.connect(self.dft_imreg2)
+
+    def cal_union_region_target_and_reference(self):
+        x_min, x_max, y_min, y_max = 0, 0, 0, 0
+        assert hasattr(self, 'target_image') and hasattr(self, 'reference_image'), 'pick both target and reference images first'
+        #origin coordinates of target image wrt viewport
+        x0_tg, y0_tg = self.target_image.pos()
+        #coordinates of diagonal point wrt viewport (assume the scaling is 1)
+        x1_tg = x0_tg + self.target_image.width
+        y1_tg = y0_tg + self.target_image.height
+        #origin coordinates of reference image wrt viewport
+        x0_rf, y0_rf = self.reference_image.pos()
+        #coordinates of diagonal point wrt viewport (assume the scaling is 1)
+        x1_rf = x0_rf + self.reference_image.width
+        y1_rf = y0_rf + self.reference_image.height
+
+        #now cal the min and max of x and y
+        x_min = min(x0_tg, x0_rf,x1_tg,x1_rf)
+        x_max = max(x0_tg, x0_rf,x1_tg,x1_rf)
+        y_min = min(y0_tg, y0_rf,y1_tg,y1_rf)
+        y_max = max(y0_tg, y0_rf,y1_tg,y1_rf)
+
+        return int(x_min), int(x_max), int(y_min), int(y_max)
+
+    def find_relative_center_for_rot_and_scaling(self, img_buffer, union_bounds):
+
+        #viewport coords system
+        target_center = sum(union_bounds[0:2])/2.0, sum(union_bounds[2:])/2.0
+        #img origin
+        origin_img = list(img_buffer.pos())
+        img_outl = img_buffer.loc['Outline']
+        img_width = abs(img_outl[0] - img_outl[1])
+        img_height = abs(img_outl[2] - img_outl[3])
+        #rotation center wrt img
+        return (target_center[0] - origin_img[0])/img_width, (target_center[1] - origin_img[1])/img_height
+
+    def _move_to_dft_sweat_spot(self):
+        #send rotation angle to 0
+        self.move_box.rotate(0-self.move_box.angle(), center = (0.5,0.5))
+        #assume same aspect ratio in x and y direction
+        self.move_box.scale(1/self.pixdim[0])
+        #go to integer coordinate pos
+        self.move_box.setPos(*[int(each) for each in self.move_box.pos()])
 
     def add_target(self):
         """
         Adds the target slice. This can be from an image in the workspace, or from a dataset
         :return:
         """
+        self._move_to_dft_sweat_spot()
         self.target_image = self.update_field_current
         current_loc = self.update_field_current.loc
         self.outl_target = current_loc['Outline']
@@ -207,6 +282,8 @@ class MdiFieldImreg_Wrapper(object):
         Adds the reference slice. This can be from an image in the workspace, or from a dataset
         :return:
         """
+        self._move_to_dft_sweat_spot()
+
         self.reference_image = self.update_field_current
         current_loc = self.update_field_current.loc
         self.outl_reference = current_loc['Outline']
@@ -336,19 +413,80 @@ class MdiFieldImreg_Wrapper(object):
         self.field.select_single_image([self.target_image])
         self.move_box.setPos(translation_vector + self.move_box.pos())
 
-    def dft_imreg2(self):
-        """
-        :return:
-        """
+    def translate_move_box(self, tvec):
+        dy, dx = tvec
+        translation_vector = QtCore.QPointF(dx, dy)
+        self.move_box.setPos(translation_vector + self.move_box.pos())
+
+    def _padding_to_union_size(self, array_frame, outline, union_outline):
+        x_min, x_max, y_min, y_max = union_outline
+        x0, x1, y0, y1 = [int(round(each)) for each in outline]
+        # print([(y0-y_min, y_max-y1),(x0-x_min, x_max-x1)])
+        return np.pad(array_frame, pad_width=[(y0-y_min, y_max-y1),(x0-x_min, x_max-x1)], mode='constant', constant_values=250)
+    
+    def prepare_dft(self):
         assert hasattr(self, 'reference_sub_outline'), "reference sub frame not yet selected"
         assert hasattr(self, 'target_sub_outline'), "target sub frame not yet selected"
         output_text = []
         # // determine the image registration transform
+        #do pading here
+        union_outline = self.cal_union_region_target_and_reference()
+        self.target_zoom_frame = self._padding_to_union_size(self.target_sub_frame,self.target_sub_outline,union_outline)
+        self.reference_sub_frame = self._padding_to_union_size(self.reference_sub_frame,self.reference_sub_outline,union_outline)
+        min_y_dim = min([self.target_zoom_frame.shape[0],self.reference_sub_frame.shape[0]])
+        min_x_dim = min([self.target_zoom_frame.shape[1],self.reference_sub_frame.shape[1]])
+        #trim it down
+        self.target_zoom_frame = self.target_zoom_frame[0:min_y_dim,0:min_x_dim]
+        self.reference_sub_frame = self.reference_sub_frame[0:min_y_dim,0:min_x_dim]
 
-        self.target_zoom_frame = self.target_sub_frame
+        cv2.imwrite(os.path.join(self.settings_object.value("FileManager/currentimagedbDir"),"target_sub_frame_downscaled.jpg"), self.target_zoom_frame)
+        #print("shapes:{}{}".format(self.target_zoom_frame.shape,self.reference_sub_frame.shape))
+        output_text.append("shapes:{}{}".format(self.target_zoom_frame.shape,self.reference_sub_frame.shape))
+        # // match the shape of reference (template) frame and current frame (image to be transformed
+        # if self.target_zoom_frame.shape != self.reference_sub_frame.shape:
+        #     # // pad on the right side
+        #     x_diff = self.reference_sub_frame.shape[0]-self.target_zoom_frame.shape[0]
+        #     y_diff = self.reference_sub_frame.shape[1] - self.target_zoom_frame.shape[1]
+        #     left_pad = x_diff//2
+        #     right_pad = x_diff - left_pad
+        #     top_pad = y_diff//2
+        #     bottom_pad = y_diff - top_pad
+        #     if x_diff>=0 and y_diff>=0:
+        #         self.target_zoom_frame = np.pad(self.target_zoom_frame, ((left_pad,right_pad), (top_pad, bottom_pad)), "edge")
+        #     else:
+        #         self.target_zoom_frame = self.target_zoom_frame[:self.reference_sub_frame.shape[0], :self.reference_sub_frame.shape[1]]
+        # else:
+        #     output_text.append("no padding required")
+        output_text.append("shapes:{}{}".format(self.target_zoom_frame.shape, self.reference_sub_frame.shape))
+
+        cv2.imwrite(os.path.join(self.settings_object.value("FileManager/currentimagedbDir"),"reference_sub_frame.jpg"), self.reference_sub_frame)
+
+        # import cv2
+        cv2.imwrite(os.path.join(self.settings_object.value("FileManager/currentimagedbDir"),"target_zoom_frame_padded.jpg"), self.target_zoom_frame)
+        self.dft_reg_instance.prepare_dft(self.reference_sub_frame, self.target_zoom_frame)
+        try:
+            self.dft_reg_thread.terminate()
+        except:
+            pass
+        self.dft_reg_thread.start()
+
+    @QtCore.pyqtSlot(object)
+    def dft_imreg2(self, vector_dict):
+        """
+        :return:
+        """
+        '''
+        assert hasattr(self, 'reference_sub_outline'), "reference sub frame not yet selected"
+        assert hasattr(self, 'target_sub_outline'), "target sub frame not yet selected"
+        output_text = []
+        # // determine the image registration transform
+        #do pading here
+        union_outline = self.cal_union_region_target_and_reference()
+        self.target_zoom_frame = self._padding_to_union_size(self.target_sub_frame,self.target_sub_outline,union_outline)
+        self.reference_sub_frame = self._padding_to_union_size(self.reference_sub_frame,self.reference_sub_outline,union_outline)
 
         cv2.imwrite(r"C:\\Users\\qiucanro\\Downloads\\target_sub_frame_downscaled.jpg", self.target_zoom_frame)
-
+        print("shapes:{}{}".format(self.target_zoom_frame.shape,self.reference_sub_frame.shape))
         output_text.append("shapes:{}{}".format(self.target_zoom_frame.shape,self.reference_sub_frame.shape))
         # // match the shape of reference (template) frame and current frame (image to be transformed
         if self.target_zoom_frame.shape != self.reference_sub_frame.shape:
@@ -373,31 +511,45 @@ class MdiFieldImreg_Wrapper(object):
         cv2.imwrite(r"C:\\Users\\qiucanro\Downloads\\target_zoom_frame_padded.jpg", self.target_zoom_frame)
 
         # // get different frames (taking into account the scaling)
-        
-        vector_dict = registration_dft_slice(self.reference_sub_frame, self.target_zoom_frame, iterations=5, \
-                                                display=True,  progressbar=None,
-                                                display_window=None)
+        '''
+        # vector_dict = registration_dft_slice(self.reference_sub_frame, self.target_zoom_frame, iterations=5, \
+                                                # display=True,  progressbar=None,
+                                                # display_window=None)
 
+        #print(vector_dict)
+        union_outline = self.cal_union_region_target_and_reference()
+        output_text=['DFT registration results']
         if vector_dict["success"]:
             net_rotation_degrees = -vector_dict["angle"]
-            #full_rotation_degrees = self.target_attrs["Rotation"] + net_rotation_degrees
-            self.target_attrs['Rotation'] = self.target_attrs["Rotation"] + net_rotation_degrees
+            full_rotation_degrees = self.target_attrs["Rotation"] + net_rotation_degrees
+            ##self.target_attrs['Rotation'] = self.target_attrs["Rotation"] + net_rotation_degrees
             # // note that the scale factor is calculated under the assumption that the images have the same pixel
             # // size, which is not the case
             self.scale_factor = vector_dict["scale"]
             # // correct for pixel size to calculate the correct scale factor
 
-            arr = ird.imreg.transform_img_dict(self.target_sub_frame, tdict=vector_dict, bgval=None, order=1,
+            arr = ird.imreg.transform_img_dict(self.target_zoom_frame, tdict=vector_dict, bgval=None, order=1,
                                                invert=False)
-            cv2.imwrite(r"C:\\Users\\qiucanro\\Downloads\\target_sub_frame_transformed.jpg", arr)
+            cv2.imwrite(os.path.join(self.settings_object.value("FileManager/currentimagedbDir"),"target_sub_frame_transformed.jpg"), arr)
 
             output_text.append("tvec: {}".format(vector_dict["tvec"]))
-            output_text.append("angle: {}{}".format(vector_dict["angle"], self.target_attrs["Rotation"]))
+            output_text.append("angle: {}, {}".format(vector_dict["angle"], self.target_attrs["Rotation"]))
             output_text.append("scale: {}".format(vector_dict["scale"]))
             #set rotation and scaling via manipulating roi
             self.field.select_single_image([self.target_image])
-            self.move_box.setAngle(self.target_attrs['Rotation'],center=[0.5,0.5])
-            self.move_box.setSize(self.move_box.size()*self.scale_factor,center=[0.5,0.5])
+            #scaling center
+            self.move_box.rotate(0, center=(0.5,0.5))
+            center = self.find_relative_center_for_rot_and_scaling(self.update_field_current, union_outline)
+            #print('center:', center)
+            self.move_box.scale(vector_dict["scale"], center = center)
+            center = self.find_relative_center_for_rot_and_scaling(self.update_field_current, union_outline)
+            #print('center:', center)
+            self.move_box.rotate(full_rotation_degrees, center = center)
+            self.translate_move_box(vector_dict["tvec"]) 
+            #self.move_box.setPos(new_roi_pos_before_rotation)
+            # self.translate_move_box(vector_dict["tvec"])
+            # self.move_box.setAngle(self.target_attrs['Rotation'],center=[0.5,0.5])
+            # self.move_box.scale(self.scale_factor,center=[0.5,0.5])
             #output info
             self.textEdit.setPlainText('\n'.join(output_text))
             return vector_dict

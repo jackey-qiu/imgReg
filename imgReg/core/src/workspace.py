@@ -14,7 +14,7 @@ from PyQt5.QtWidgets import QMainWindow, QApplication,QMessageBox, QAbstractItem
 from PyQt5.QtCore import pyqtSignal as Signal
 from PyQt5.QtCore import pyqtSlot as Slot
 from settings_unit import ScaleBar
-from geometry_unit import geometry_dialog, geometry_widget_wrapper
+from geometry_unit import geometry_widget_wrapper
 from field_dft_registration import mdi_field_imreg_show, MdiFieldImreg_Wrapper
 from spatial_registration_module import rotatePoint
 from field_fiducial_markers_unit import FiducialMarkerWidget, FiducialMarkerWidget_wrapper

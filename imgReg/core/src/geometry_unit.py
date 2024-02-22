@@ -43,7 +43,8 @@ class geometry_widget_wrapper(object):
     def update_geo(self):
         self.attrs_geo = self.update_field_current.loc
         self.img_array_gray = qt_image_to_array(self.update_field_current.pixmap.toImage())
-        self.shape_geo = (self.update_field_current.width, self.update_field_current.height, 1)
+        #array dimension
+        self.shape_geo = (self.update_field_current.pixmap.width(), self.update_field_current.pixmap.height(), 1)
         # % get length from outline
         if not 'Outline' in self.attrs_geo.keys():
             self.attrs_geo['Outline'] = [0, self.shape_geo[self.axis_geo[0]], 0, self.shape_geo[self.axis_geo[1]], 0,
@@ -285,6 +286,7 @@ class geometry_widget_wrapper(object):
         else:
             self.z_aspect = 1
         # // self.pixdim is the pixel dimensions
+        # here we assume each 1by1 pix has a dimension of 1um by 1um
         self.pixdim = [1, 1, 1]
         self.size = [1, 1, 1]
         self.size[0] = outl[1] - outl[0]
@@ -300,6 +302,7 @@ class geometry_widget_wrapper(object):
         self.center[2] = (outl[5] - outl[4]) / 2 + outl[4]
         self.attrs_geo["Center"] = self.center
 
+'''
 class geometry_dialog(QtWidgets.QDialog):
     """
     Module contains tool to change the position and rotation of the image in the workspace.
@@ -806,7 +809,7 @@ class geometry_dialog(QtWidgets.QDialog):
             self._parent.field.addItem(self.move_box)
             # self._parent.mdi_field_widget.update_field_current.setParentItem(self.move_box)
             self.move_box.sigRegionChangeFinished.connect(self.update_box)
-
+'''
 def main_test():
     import os, sys
 

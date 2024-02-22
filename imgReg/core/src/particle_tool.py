@@ -9,10 +9,47 @@ import pyqtgraph as pg
 import numpy as np
 import math
 from util import qt_image_to_array, PandasModel
-import trackpy as tp
 import pandas as pd
 import copy
 from spatial_registration_module import rotatePoint
+import time
+
+class TrackParticle(QtCore.QObject):
+
+    sig_status_update = QtCore.pyqtSignal(str)
+    sig_particle_info_update = QtCore.pyqtSignal(object)
+
+    def __init__(self, parent, get_img_array_func, get_kwargs_func, get_method_str_func):
+        super().__init__()
+        self.parent = parent
+        self.get_img_array_func = get_img_array_func
+        self.get_kwargs_func = get_kwargs_func
+        self.get_method_str_func = get_method_str_func
+
+    def prepare_tracking(self, img_buffer, call_back):
+        self.np_array_gray = self.get_img_array_func(img_buffer.pixmap.toImage())
+        self.kwargs = self.get_kwargs_func()
+        self.method_str = self.get_method_str_func()
+        self.call_back = call_back
+        self.sig_status_update.emit('Done with preparation for particle tracking!')
+        # self.parent.statusbar.showMessage('Done with preparation for particle tracking!')
+
+    def track_particle(self):
+        import trackpy as tp
+        self.sig_status_update.emit('Working on particle tracking now...It takes a while.')
+        if self.method_str == 'locate_brightfield_ring':
+            # this tracking algorithm is unstable
+            # particle_info = tp.locate_brightfield_ring(np_array_gray, kwargs['diameter']).round(1)
+            particle_info = tp.locate(self.np_array_gray, **self.kwargs).round(1)
+        else:
+            particle_info = tp.locate(self.np_array_gray, **self.kwargs).round(1)
+        self.sig_status_update.emit('Sleep for 3 seconds')
+        time.sleep(3)
+        self.sig_status_update.emit('Particle tracking finished! Check results in the table viewer.')
+        # self.call_back(particle_info)
+        self.sig_particle_info_update.emit(particle_info)
+        # self.parent.init_pandas_model(particle_info)
+
 
 class particle_widget_wrapper(object):
     """
@@ -29,8 +66,25 @@ class particle_widget_wrapper(object):
         # // disable registration mark tab
         # // enable field view
         self.setEnabled(True)
+        self.track_partikle_instance = TrackParticle(parent= self,
+                                                     get_img_array_func=qt_image_to_array,
+                                                     get_kwargs_func=self.extract_kwargs_for_locating_particle,
+                                                     get_method_str_func=self.comboBox_locate_method.currentText)
+        self.thread_track_particle = QtCore.QThread()
+        self.track_partikle_instance.moveToThread(self.thread_track_particle)
+        self.thread_track_particle.started.connect(self.track_partikle_instance.track_particle)
+        self.track_partikle_instance.sig_status_update.connect(self.update_status)
+        self.track_partikle_instance.sig_particle_info_update.connect(self.update_particle_info)
         #self.init_pandas_model()
-        
+
+    @QtCore.pyqtSlot(str)
+    def update_status(self,string):
+        self.statusbar.showMessage(string)
+
+    @QtCore.pyqtSlot(object)
+    def update_particle_info(self,particle_info):
+        self.init_pandas_model(particle_info)
+
     def init_pandas_model(self, data, table_view_widget_name='tableView_particle_info'):
         #disable_all_tabs_but_one(self, tab_widget_name, tab_indx)
         self.pandas_model = PandasModel(data = data, tableviewer = getattr(self, table_view_widget_name), main_gui=self)
@@ -74,6 +128,13 @@ class particle_widget_wrapper(object):
         self.pushButton_save_locate_settings.clicked.connect(self.update_partical_tracking_pars)
 
     def track_particle(self):
+        self.track_partikle_instance.prepare_tracking(self.update_field_current, self.init_pandas_model)
+        try:
+            self.thread_track_particle.terminate()
+        except:
+            pass
+        self.thread_track_particle.start()
+        '''
         np_array_gray = qt_image_to_array(self.update_field_current.pixmap.toImage())
         kwargs = self.extract_kwargs_for_locating_particle()
         method_str = self.comboBox_locate_method.currentText()
@@ -85,6 +146,7 @@ class particle_widget_wrapper(object):
             particle_info = tp.locate(np_array_gray, **kwargs).round(1)
 
         self.init_pandas_model(particle_info)
+        '''
 
     def annotate(self):
         if self.markers!=None:

@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1412</width>
-    <height>1071</height>
+    <height>980</height>
    </rect>
   </property>
   <property name="font">
@@ -316,7 +316,7 @@
               </font>
              </property>
              <property name="currentIndex">
-              <number>4</number>
+              <number>5</number>
              </property>
              <widget class="QWidget" name="tab">
               <attribute name="title">
@@ -1109,6 +1109,538 @@
               <attribute name="title">
                <string>BLControl</string>
               </attribute>
+              <layout class="QVBoxLayout" name="verticalLayout_13">
+               <item>
+                <widget class="QFrame" name="frame_4">
+                 <property name="frameShape">
+                  <enum>QFrame::StyledPanel</enum>
+                 </property>
+                 <property name="frameShadow">
+                  <enum>QFrame::Raised</enum>
+                 </property>
+                 <layout class="QVBoxLayout" name="verticalLayout_12">
+                  <item>
+                   <widget class="QGroupBox" name="groupBox_2">
+                    <property name="title">
+                     <string>Camera stage control</string>
+                    </property>
+                    <layout class="QVBoxLayout" name="verticalLayout_14">
+                     <item>
+                      <layout class="QGridLayout" name="gridLayout_7">
+                       <item row="1" column="3">
+                        <widget class="QPushButton" name="pushButton_6">
+                         <property name="text">
+                          <string>Brighter</string>
+                         </property>
+                        </widget>
+                       </item>
+                       <item row="1" column="1">
+                        <widget class="QPushButton" name="pushButton_4">
+                         <property name="text">
+                          <string>Lightoff</string>
+                         </property>
+                        </widget>
+                       </item>
+                       <item row="1" column="0">
+                        <widget class="QPushButton" name="pushButton_3">
+                         <property name="text">
+                          <string>Lighton</string>
+                         </property>
+                        </widget>
+                       </item>
+                       <item row="1" column="2">
+                        <widget class="QPushButton" name="pushButton_5">
+                         <property name="text">
+                          <string>Dimmer</string>
+                         </property>
+                        </widget>
+                       </item>
+                       <item row="1" column="5">
+                        <widget class="QSpinBox" name="spinBox"/>
+                       </item>
+                       <item row="1" column="4">
+                        <widget class="QLabel" name="label_19">
+                         <property name="text">
+                          <string>by</string>
+                         </property>
+                        </widget>
+                       </item>
+                       <item row="0" column="2">
+                        <widget class="QPushButton" name="pushButton_7">
+                         <property name="text">
+                          <string>Focus</string>
+                         </property>
+                        </widget>
+                       </item>
+                       <item row="0" column="3">
+                        <widget class="QPushButton" name="pushButton_8">
+                         <property name="text">
+                          <string>DeFocus</string>
+                         </property>
+                        </widget>
+                       </item>
+                       <item row="0" column="0">
+                        <widget class="QPushButton" name="pushButton">
+                         <property name="text">
+                          <string>ZoomIn</string>
+                         </property>
+                        </widget>
+                       </item>
+                       <item row="0" column="1">
+                        <widget class="QPushButton" name="pushButton_2">
+                         <property name="text">
+                          <string>ZoomOut</string>
+                         </property>
+                        </widget>
+                       </item>
+                       <item row="1" column="6">
+                        <widget class="QLabel" name="label_21">
+                         <property name="text">
+                          <string>%</string>
+                         </property>
+                        </widget>
+                       </item>
+                       <item row="0" column="4">
+                        <widget class="QLabel" name="label_20">
+                         <property name="text">
+                          <string>by</string>
+                         </property>
+                        </widget>
+                       </item>
+                       <item row="0" column="5">
+                        <widget class="QSpinBox" name="spinBox_2"/>
+                       </item>
+                       <item row="0" column="6">
+                        <widget class="QLabel" name="label_22">
+                         <property name="text">
+                          <string>um</string>
+                         </property>
+                        </widget>
+                       </item>
+                       <item row="2" column="0">
+                        <widget class="QLabel" name="label_23">
+                         <property name="text">
+                          <string>Stage X</string>
+                         </property>
+                        </widget>
+                       </item>
+                       <item row="2" column="1">
+                        <widget class="QLineEdit" name="lineEdit"/>
+                       </item>
+                       <item row="2" column="2">
+                        <widget class="QLabel" name="label_24">
+                         <property name="text">
+                          <string>Stage Y</string>
+                         </property>
+                        </widget>
+                       </item>
+                       <item row="2" column="3">
+                        <widget class="QLineEdit" name="lineEdit_2"/>
+                       </item>
+                       <item row="2" column="4">
+                        <widget class="QLabel" name="label_25">
+                         <property name="text">
+                          <string>Stage Z</string>
+                         </property>
+                        </widget>
+                       </item>
+                       <item row="2" column="5">
+                        <widget class="QLineEdit" name="lineEdit_3"/>
+                       </item>
+                       <item row="2" column="6">
+                        <widget class="QLabel" name="label_26">
+                         <property name="text">
+                          <string>um</string>
+                         </property>
+                        </widget>
+                       </item>
+                      </layout>
+                     </item>
+                    </layout>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QGroupBox" name="groupBox_3">
+                    <property name="title">
+                     <string>Sample stage control</string>
+                    </property>
+                    <layout class="QVBoxLayout" name="verticalLayout_15">
+                     <item>
+                      <layout class="QGridLayout" name="gridLayout_9">
+                       <item row="1" column="3">
+                        <widget class="QSpinBox" name="spinBox_8"/>
+                       </item>
+                       <item row="1" column="2">
+                        <widget class="QLabel" name="label_44">
+                         <property name="sizePolicy">
+                          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                           <horstretch>0</horstretch>
+                           <verstretch>0</verstretch>
+                          </sizepolicy>
+                         </property>
+                         <property name="text">
+                          <string>by</string>
+                         </property>
+                        </widget>
+                       </item>
+                       <item row="1" column="1">
+                        <widget class="QPushButton" name="pushButton_28">
+                         <property name="sizePolicy">
+                          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                           <horstretch>0</horstretch>
+                           <verstretch>0</verstretch>
+                          </sizepolicy>
+                         </property>
+                         <property name="text">
+                          <string>dx-</string>
+                         </property>
+                        </widget>
+                       </item>
+                       <item row="1" column="0">
+                        <widget class="QPushButton" name="pushButton_27">
+                         <property name="sizePolicy">
+                          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                           <horstretch>0</horstretch>
+                           <verstretch>0</verstretch>
+                          </sizepolicy>
+                         </property>
+                         <property name="text">
+                          <string>dx+</string>
+                         </property>
+                        </widget>
+                       </item>
+                       <item row="1" column="6">
+                        <widget class="QLabel" name="label_45">
+                         <property name="sizePolicy">
+                          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                           <horstretch>0</horstretch>
+                           <verstretch>0</verstretch>
+                          </sizepolicy>
+                         </property>
+                         <property name="text">
+                          <string>um</string>
+                         </property>
+                        </widget>
+                       </item>
+                       <item row="1" column="5">
+                        <widget class="QLineEdit" name="lineEdit_12"/>
+                       </item>
+                       <item row="2" column="3">
+                        <widget class="QSpinBox" name="spinBox_4"/>
+                       </item>
+                       <item row="2" column="2">
+                        <widget class="QLabel" name="label_29">
+                         <property name="sizePolicy">
+                          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                           <horstretch>0</horstretch>
+                           <verstretch>0</verstretch>
+                          </sizepolicy>
+                         </property>
+                         <property name="text">
+                          <string>by</string>
+                         </property>
+                        </widget>
+                       </item>
+                       <item row="2" column="0">
+                        <widget class="QPushButton" name="pushButton_15">
+                         <property name="sizePolicy">
+                          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                           <horstretch>0</horstretch>
+                           <verstretch>0</verstretch>
+                          </sizepolicy>
+                         </property>
+                         <property name="text">
+                          <string>dx+</string>
+                         </property>
+                        </widget>
+                       </item>
+                       <item row="2" column="1">
+                        <widget class="QPushButton" name="pushButton_16">
+                         <property name="sizePolicy">
+                          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                           <horstretch>0</horstretch>
+                           <verstretch>0</verstretch>
+                          </sizepolicy>
+                         </property>
+                         <property name="text">
+                          <string>dx-</string>
+                         </property>
+                        </widget>
+                       </item>
+                       <item row="1" column="4">
+                        <widget class="QPushButton" name="pushButton_29">
+                         <property name="text">
+                          <string>x to</string>
+                         </property>
+                        </widget>
+                       </item>
+                       <item row="2" column="5">
+                        <widget class="QLineEdit" name="lineEdit_10"/>
+                       </item>
+                       <item row="2" column="6">
+                        <widget class="QLabel" name="label_30">
+                         <property name="sizePolicy">
+                          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                           <horstretch>0</horstretch>
+                           <verstretch>0</verstretch>
+                          </sizepolicy>
+                         </property>
+                         <property name="text">
+                          <string>um</string>
+                         </property>
+                        </widget>
+                       </item>
+                       <item row="2" column="4">
+                        <widget class="QPushButton" name="pushButton_13">
+                         <property name="text">
+                          <string>x to</string>
+                         </property>
+                        </widget>
+                       </item>
+                       <item row="0" column="0">
+                        <widget class="QPushButton" name="pushButton_25">
+                         <property name="sizePolicy">
+                          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                           <horstretch>0</horstretch>
+                           <verstretch>0</verstretch>
+                          </sizepolicy>
+                         </property>
+                         <property name="text">
+                          <string>dx+</string>
+                         </property>
+                        </widget>
+                       </item>
+                       <item row="0" column="1">
+                        <widget class="QPushButton" name="pushButton_26">
+                         <property name="sizePolicy">
+                          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                           <horstretch>0</horstretch>
+                           <verstretch>0</verstretch>
+                          </sizepolicy>
+                         </property>
+                         <property name="text">
+                          <string>dx-</string>
+                         </property>
+                        </widget>
+                       </item>
+                       <item row="0" column="3">
+                        <widget class="QSpinBox" name="spinBox_7"/>
+                       </item>
+                       <item row="0" column="5">
+                        <widget class="QLineEdit" name="lineEdit_11"/>
+                       </item>
+                       <item row="0" column="6">
+                        <widget class="QLabel" name="label_43">
+                         <property name="sizePolicy">
+                          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                           <horstretch>0</horstretch>
+                           <verstretch>0</verstretch>
+                          </sizepolicy>
+                         </property>
+                         <property name="text">
+                          <string>um</string>
+                         </property>
+                        </widget>
+                       </item>
+                       <item row="0" column="4">
+                        <widget class="QPushButton" name="pushButton_14">
+                         <property name="text">
+                          <string>x to</string>
+                         </property>
+                        </widget>
+                       </item>
+                       <item row="0" column="2">
+                        <widget class="QLabel" name="label_34">
+                         <property name="sizePolicy">
+                          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                           <horstretch>0</horstretch>
+                           <verstretch>0</verstretch>
+                          </sizepolicy>
+                         </property>
+                         <property name="text">
+                          <string>by</string>
+                         </property>
+                        </widget>
+                       </item>
+                       <item row="3" column="6">
+                        <widget class="QLabel" name="label_27">
+                         <property name="text">
+                          <string>um</string>
+                         </property>
+                        </widget>
+                       </item>
+                       <item row="3" column="5">
+                        <widget class="QLineEdit" name="lineEdit_4"/>
+                       </item>
+                       <item row="3" column="3" colspan="2">
+                        <widget class="QLabel" name="label_31">
+                         <property name="text">
+                          <string>Stage XYZ</string>
+                         </property>
+                        </widget>
+                       </item>
+                      </layout>
+                     </item>
+                    </layout>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QGroupBox" name="groupBox_4">
+                    <property name="title">
+                     <string>Sample scan control</string>
+                    </property>
+                    <layout class="QVBoxLayout" name="verticalLayout_16">
+                     <item>
+                      <layout class="QGridLayout" name="gridLayout_10">
+                       <item row="1" column="3">
+                        <widget class="QPushButton" name="pushButton_17">
+                         <property name="text">
+                          <string>Brighter</string>
+                         </property>
+                        </widget>
+                       </item>
+                       <item row="1" column="1">
+                        <widget class="QPushButton" name="pushButton_18">
+                         <property name="text">
+                          <string>Lightoff</string>
+                         </property>
+                        </widget>
+                       </item>
+                       <item row="1" column="0">
+                        <widget class="QPushButton" name="pushButton_19">
+                         <property name="text">
+                          <string>Lighton</string>
+                         </property>
+                        </widget>
+                       </item>
+                       <item row="1" column="2">
+                        <widget class="QPushButton" name="pushButton_20">
+                         <property name="text">
+                          <string>Dimmer</string>
+                         </property>
+                        </widget>
+                       </item>
+                       <item row="1" column="5">
+                        <widget class="QSpinBox" name="spinBox_5"/>
+                       </item>
+                       <item row="1" column="4">
+                        <widget class="QLabel" name="label_35">
+                         <property name="text">
+                          <string>by</string>
+                         </property>
+                        </widget>
+                       </item>
+                       <item row="0" column="2">
+                        <widget class="QPushButton" name="pushButton_21">
+                         <property name="text">
+                          <string>Focus</string>
+                         </property>
+                        </widget>
+                       </item>
+                       <item row="0" column="3">
+                        <widget class="QPushButton" name="pushButton_22">
+                         <property name="text">
+                          <string>DeFocus</string>
+                         </property>
+                        </widget>
+                       </item>
+                       <item row="0" column="0">
+                        <widget class="QPushButton" name="pushButton_23">
+                         <property name="text">
+                          <string>ZoomIn</string>
+                         </property>
+                        </widget>
+                       </item>
+                       <item row="0" column="1">
+                        <widget class="QPushButton" name="pushButton_24">
+                         <property name="text">
+                          <string>ZoomOut</string>
+                         </property>
+                        </widget>
+                       </item>
+                       <item row="1" column="6">
+                        <widget class="QLabel" name="label_36">
+                         <property name="text">
+                          <string>%</string>
+                         </property>
+                        </widget>
+                       </item>
+                       <item row="0" column="4">
+                        <widget class="QLabel" name="label_37">
+                         <property name="text">
+                          <string>by</string>
+                         </property>
+                        </widget>
+                       </item>
+                       <item row="0" column="5">
+                        <widget class="QSpinBox" name="spinBox_6"/>
+                       </item>
+                       <item row="0" column="6">
+                        <widget class="QLabel" name="label_38">
+                         <property name="text">
+                          <string>um</string>
+                         </property>
+                        </widget>
+                       </item>
+                       <item row="2" column="0">
+                        <widget class="QLabel" name="label_39">
+                         <property name="text">
+                          <string>Stage X</string>
+                         </property>
+                        </widget>
+                       </item>
+                       <item row="2" column="1">
+                        <widget class="QLineEdit" name="lineEdit_7"/>
+                       </item>
+                       <item row="2" column="2">
+                        <widget class="QLabel" name="label_40">
+                         <property name="text">
+                          <string>Stage Y</string>
+                         </property>
+                        </widget>
+                       </item>
+                       <item row="2" column="3">
+                        <widget class="QLineEdit" name="lineEdit_8"/>
+                       </item>
+                       <item row="2" column="4">
+                        <widget class="QLabel" name="label_41">
+                         <property name="text">
+                          <string>Stage Z</string>
+                         </property>
+                        </widget>
+                       </item>
+                       <item row="2" column="5">
+                        <widget class="QLineEdit" name="lineEdit_9"/>
+                       </item>
+                       <item row="2" column="6">
+                        <widget class="QLabel" name="label_42">
+                         <property name="text">
+                          <string>um</string>
+                         </property>
+                        </widget>
+                       </item>
+                      </layout>
+                     </item>
+                    </layout>
+                   </widget>
+                  </item>
+                  <item>
+                   <spacer name="verticalSpacer_2">
+                    <property name="orientation">
+                     <enum>Qt::Vertical</enum>
+                    </property>
+                    <property name="sizeHint" stdset="0">
+                     <size>
+                      <width>20</width>
+                      <height>40</height>
+                     </size>
+                    </property>
+                   </spacer>
+                  </item>
+                 </layout>
+                </widget>
+               </item>
+              </layout>
              </widget>
              <widget class="QWidget" name="tab_4">
               <attribute name="title">
