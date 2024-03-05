@@ -3,7 +3,9 @@
 
 # // module to manage the field view
 # from ui.workspace_widget import Ui_workspace_widget
-import sys, os
+import sys, os, cv2
+import tifffile
+import qimage2ndarray
 from pathlib import Path
 import numpy as np
 import pandas as pd
@@ -18,14 +20,19 @@ from geometry_unit import geometry_widget_wrapper
 from field_dft_registration import mdi_field_imreg_show, MdiFieldImreg_Wrapper
 from spatial_registration_module import rotatePoint
 from field_fiducial_markers_unit import FiducialMarkerWidget, FiducialMarkerWidget_wrapper
+from camera_control_module import camera_control_panel
 from particle_tool import particle_widget_wrapper
 from field_tools import FieldViewBox
 from utility_widgets import check_true
 from importmodule import load_im_xml, load_align_xml
-from util import PandasModel
+from util import PandasModel, submit_jobs
+from taurus.qt.qtgui.container import TaurusMainWindow
+from sardana.taurus.qt.qtgui.extra_macroexecutor.macroexecutor import MacroExecutionWindow, ParamEditorManager
+from taurus import Device
 
 setting_file = str(Path(__file__).parent.parent.parent / 'config' / 'appsettings.ini')
 ui_file_folder = Path(__file__).parent.parent / 'ui'
+sys.path.append(str(Path(__file__).parent))
 
 def quick_level(data):
     while data.size > 1e6:
@@ -44,7 +51,9 @@ def quick_min_max(data):
         data = data[sl]
     return nanmin(data), nanmax(data)
 
-class WorkSpace(QMainWindow, MdiFieldImreg_Wrapper, geometry_widget_wrapper, FiducialMarkerWidget_wrapper, particle_widget_wrapper):
+# class WorkSpace(TaurusMainWindow, MdiFieldImreg_Wrapper, geometry_widget_wrapper, FiducialMarkerWidget_wrapper, particle_widget_wrapper, camera_control_panel):
+class WorkSpace(MacroExecutionWindow, MdiFieldImreg_Wrapper, geometry_widget_wrapper, FiducialMarkerWidget_wrapper, particle_widget_wrapper, camera_control_panel):
+# class WorkSpace(MacroExecutionWindow):
     """
     Main class of the workspace
     """
@@ -57,24 +66,45 @@ class WorkSpace(QMainWindow, MdiFieldImreg_Wrapper, geometry_widget_wrapper, Fid
     removeTool_sig = Signal(object)
     saveimagedb_sig = Signal()
 
-    def __init__(self, parent = None):
+    HEARTBEAT = 300  # blinking semi-period in ms. None for hiding the LED
+    FILE_MENU_ENABLED = True
+    VIEW_MENU_ENABLED = True
+    TAURUS_MENU_ENABLED = True
+    TOOLS_MENU_ENABLED = True
+    HELP_MENU_ENABLED = True
+    # Allows the user to change/create/delete perspectives
+    USER_PERSPECTIVES_ENABLED = True
+    LOGGER_WIDGET_ENABLED = True
+    # set to None for disabling splash screen
+    SPLASH_LOGO_NAME = "large:TaurusSplash.png"
+    _splashMessage = "Initializing Main window..."
+
+    def __init__(self, parent = None, designMode = False):
         """
         Initialize the class
         :param parent: parent widget
         :param settings_object: settings object
         """
-        QMainWindow.__init__(self, parent)
+        # TaurusMainWindow.__init__(self, parent)
+        MacroExecutionWindow.__init__(self, parent, designMode)
+        self.__init_gui()
+        self.init_taurus()
+        #test this func
+        self.test_submit_jobs = submit_jobs
+
+    def __init_gui(self):
         #super(WorkSpace, self).__init__(parent)
         uic.loadUi(str(ui_file_folder / 'img_reg_main_window.ui'), self)
+        self.settings_object = QtCore.QSettings(setting_file, QtCore.QSettings.IniFormat)
 
         MdiFieldImreg_Wrapper.__init__(self)
         geometry_widget_wrapper.__init__(self)
         FiducialMarkerWidget_wrapper.__init__(self)
         particle_widget_wrapper.__init__(self)
+        camera_control_panel.__init__(self)
         self.setMinimumSize(800, 600)
         self.widget_terminal.update_name_space('gui', self)
         self._parent = self
-        self.settings_object = QtCore.QSettings(setting_file, QtCore.QSettings.IniFormat)
 
         self.img_backup_path = "ImageBackup.imagedb"
         self.zoomfactor_relative_to_cam = 0
@@ -128,7 +158,13 @@ class WorkSpace(QMainWindow, MdiFieldImreg_Wrapper, geometry_widget_wrapper, Fid
 
         from pyqtgraph import GraphicsLayoutWidget
         self.graphicsView_field = GraphicsLayoutWidget(self)
+        self.graphicsView_field_color_bar = GraphicsLayoutWidget(self)
         self.graphics_layout.addWidget(self.graphicsView_field)
+        self.grid_alignment.addWidget(self.graphicsView_field_color_bar)
+        # Contrast/color control
+        self.hist = pg.HistogramLUTItem()
+        # self.hist.sigLevelChangeFinished.connect(lambda:self.statusbar.showMessage(str(self.hist.getLevels())))
+        self.graphicsView_field_color_bar.addItem(self.hist,row=0,col=0)
         self.graphicsView_field.setCentralItem(self.field)
         self.set_cursor_icon()
 
@@ -216,7 +252,44 @@ class WorkSpace(QMainWindow, MdiFieldImreg_Wrapper, geometry_widget_wrapper, Fid
         self.connect_slots()
         self.imageBuffer.recallImgBackup()
         self.highlightFirstImg()
-        
+
+    def init_taurus(self):
+        #ui is a *.ui file from qt designer
+        self._qDoor = None
+        self.doorChanged.connect(self.onDoorChanged)
+        TaurusMainWindow.loadSettings(self)
+        #sequencer slot
+        self.widget_sequencer.doorChanged.connect(
+        self.widget_sequencer.onDoorChanged)
+        self.registerConfigDelegate(self.widget_sequencer)
+        self.widget_sequencer.shortMessageEmitted.connect(
+            self.onShortMessage)
+
+    def setCustomMacroEditorPaths(self, customMacroEditorPaths):
+        MacroExecutionWindow.setCustomMacroEditorPaths(
+            self, customMacroEditorPaths)
+        ParamEditorManager().parsePaths(customMacroEditorPaths)
+        ParamEditorManager().browsePaths()
+
+    def updateParameter(self):
+        self.taurusCommandButton.setParameters([self.lineEdit_mot1.text()])        
+
+    def onDoorChanged(self, doorName):
+        MacroExecutionWindow.onDoorChanged(self, doorName)
+        if self._qDoor:
+            self._qDoor.macroStatusUpdated.disconnect(
+                self.widget_sequencer.onMacroStatusUpdated)
+        if doorName == "":
+            return
+        self._qDoor = Device(doorName)
+        self._qDoor.macroStatusUpdated.connect(
+            self.widget_sequencer.onMacroStatusUpdated)
+        self.widget_sequencer.onDoorChanged(doorName)
+
+    def setModel(self, model):
+        MacroExecutionWindow.setModel(self, model)
+        self.widget_sequencer.setModel(model)        
+
     @Slot(int)    
     def switch_mode(self, tabIndex):
         tabText = self.tabWidget.tabText(tabIndex).lower()
@@ -267,6 +340,8 @@ class WorkSpace(QMainWindow, MdiFieldImreg_Wrapper, geometry_widget_wrapper, Fid
         self.connect_slots_geo()
         #particle slots
         self.connect_slots_par()
+        #cam stream slots
+        self.connect_slots_cam()
         #widget events
         self.bt_removeMenu.setMenu(QtWidgets.QMenu(self.bt_removeMenu))
         self.bt_removeMenu.clicked.connect(self.bt_removeMenu.showMenu)
@@ -1677,14 +1752,18 @@ class ImageBufferInfo(QtCore.QObject):
         :return:
         """
         import os
+        image = None
         if os.path.exists(d['Path']):
             if os.path.splitext(d['Path'])[-1].lower() == ".bmp":
                 qi = QtGui.QPixmap(d['Path'])
+                image = cv2.imread(d['Path'])
             elif os.path.splitext(d['Path'])[-1].lower() == ".jpg" or os.path.splitext(d['Path'])[
                 -1].lower() == ".jpeg":
                 qi = QtGui.QPixmap(d['Path'])
+                image = cv2.imread(d['Path'])
             elif os.path.splitext(d['Path'])[-1].lower() == ".png":
                 qi = QtGui.QPixmap(d['Path'])
+                image = cv2.imread(d['Path'])
                 if not qi:
                     # // try to copy the png to bmp and import it. This is a workaround as the PNG is actually a BMP
                     import shutil
@@ -1694,7 +1773,25 @@ class ImageBufferInfo(QtCore.QObject):
                     ret = qi.load(new_file, format="BMP")
             elif os.path.splitext(d['Path'])[-1].lower() == ".tif" or os.path.splitext(d['Path'])[
                 -1].lower() == ".tiff":
-                qi = QtGui.QPixmap(d['Path'])
+                image = tifffile.imread(d['Path'])
+                image = cv2.convertScaleAbs(image, alpha=0.001, beta=50)
+                # image= qimage2ndarray.array2qimage(adjusted_image, normalize=(0,255))
+                qimage= qimage2ndarray.array2qimage(image)
+                """
+                w, h = image.shape[::-1][0:2]
+                image_dim = image.ndim
+                if image_dim<3:
+                    frame = cv2.cvtColor(image, cv2.COLOR_GRAY2RGB)
+                else:
+                    frame = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+                # image = QtGui.QImage(image, w,\
+                            # h, w * 2,QtGui.QImage.Format_RGB888)
+                image = QtGui.QImage(image, w,\
+                            h, w * 2,QtGui.QImage.Format_Grayscale8)
+                """
+                qi = QtGui.QPixmap(qimage)
+                # self._temp_qi = qi
+                # self._temp = d
             else:
                 QtCore.qDebug("Image format not supported")
                 qi = None
@@ -1738,8 +1835,13 @@ class ImageBufferInfo(QtCore.QObject):
             aspect_ratio.append(d["Outline"][1] - d["Outline"][0])
             aspect_ratio.append(d["Outline"][3] - d["Outline"][2])
             aspect_ratio.append(d["Outline"][5] - d["Outline"][4])
-            aspect_ratio[0] /= qi.size().width()
-            aspect_ratio[1] /= qi.size().height()
+            try:
+                aspect_ratio[0] /= qi.size().width()
+                aspect_ratio[1] /= qi.size().height()
+            except:
+                aspect_ratio[0] /= d['Size'][0]
+                aspect_ratio[1] /= d['Size'][1]
+
             aspect_ratio[2] /= 1
             d.update({'AspectRatio': aspect_ratio})
 
@@ -1753,10 +1855,14 @@ class ImageBufferInfo(QtCore.QObject):
                 opa = 100
 
             # // calculate the outline based on the center and size
-            img = ImageBufferObject(width=d['Size'][0], height=d['Size'][1],
+            img = ImageBufferObject(image = image, width=d['Size'][0], height=d['Size'][1],
                                     pos=(d["Outline"][0], d["Outline"][2]), pixmap=qi, opacity=opa,
                                     attrs=d)
             self._parent.field.addItem(img)
+            # if os.path.splitext(d['Path'])[-1].lower() == ".tif" or os.path.splitext(d['Path'])[
+                # -1].lower() == ".tiff":
+                # img.setImage(image)
+            self._parent.hist.setImageItem(img)
             # // reset the scale for rotation
             s = list(img._scale)
             if s[0] == 0:
@@ -1943,32 +2049,38 @@ class ImageBufferInfo(QtCore.QObject):
                 # self.attrList = dict_list
 
 
-class ImageBufferObject(pg.GraphicsObject):
+# class ImageBufferObject(pg.GraphicsObject):
+class ImageBufferObject(pg.ImageItem):
     """
     This class is meant for displaying a picture in the field view, without listing it in the field render list
     """
 
-    def __init__(self, width=None, height=None, pos=(0, 0), rot=0, Visible=True, pixmap=None, attrs={}, opacity=100):
-        pg.GraphicsObject.__init__(self)
+    def __init__(self, image = None, width=None, height=None, pos=(0, 0), rot=0, Visible=True, pixmap=None, attrs={}, opacity=100):
+        pg.ImageItem.__init__(self, image)
         self.width = width
         self.height = height
         self.axisOrder = 'row-major'
         self._scale = [1, 1]
         self.attrs = attrs
-        if pixmap is not None:
+        if not image.any() and (pixmap is not None):
             self.setPixmap(pixmap)
+            self.pixmap = pixmap
+        else:
             self.pixmap = pixmap
 
         if width is not None and height is None:
-            s = float(width) / self.pixmap.width()
+            # s = float(width) / self.pixmap.width()
+            s = float(width) / self.image.shape[1]
             self.scale(s, s)
             self._scale = (s, s)
         elif height is not None and width is None:
-            s = float(height) / self.pixmap.height()
+            # s = float(height) / self.pixmap.height()
+            s = float(height) / self.image.shape[0]
             self.scale(s, s)
             self._scale = (s, s)
-        elif width is not None and height is not None and (self.pixmap.width() > 0) and (self.pixmap.height() > 0):
-            self._scale = (float(width) / self.pixmap.width(), float(height) / self.pixmap.height())
+        elif width is not None and height is not None and (self.image.shape[0] > 0) and (self.image.shape[1] > 0):
+            # self._scale = (float(width) / self.pixmap.width(), float(height) / self.pixmap.height())
+            self._scale = (float(width) / self.image.shape[1], float(height) / self.image.shape[0])
             # self.scale(self._scale[0], self._scale[1])
             tr = QtGui.QTransform()
             tr.scale(self._scale[0], self._scale[1])
@@ -1981,11 +2093,14 @@ class ImageBufferObject(pg.GraphicsObject):
         self.setOpacity(opacity / 100)
         self.border = None
 
+    def update_dim(self, new_dims):
+        self.width, self.height = new_dims
+        
     def setPixmap(self, pixmap):
         self.pixmap = pixmap
         self.update()
 
-    def paint(self, p, *args):
+    def paint_(self, p, *args):
         p.setRenderHint(p.Antialiasing)
         p.drawPixmap(0, 0, self.pixmap)
         if self.border is not None:
@@ -2281,11 +2396,35 @@ class TableWidgetDragRows(QtWidgets.QTableWidget):
                 # self.menu.addAction(copy_action)
                 self.menu.popup(QtGui.QCursor.pos())
 
-
 def main():
+    import sardana
+    from taurus.core.util import argparse
+    from taurus.qt.qtgui.application import TaurusApplication
+    sys.path.append(str(Path(__file__).parent))
     import qdarkstyle
-    app = QApplication(sys.argv)
+
+
+    parser = argparse.get_taurus_parser()
+    parser.set_usage("%prog [options]")
+    parser.set_description("Sardana macro sequencer.\n"
+                           "It allows the creation of sequences of "
+                           "macros, executed one after the other.\n"
+                           "The sequences can be stored under xml files")
+    parser.add_option("-f", "--file",
+                      dest="file", default=None,
+                      help="load macro sequence from a file(XML or spock "
+                           "syntax)")
+
+    app = TaurusApplication(cmd_line_parser=parser,
+                       app_name="sequencer",
+                       app_version=sardana.Release.version)
+    # app = TaurusApplication(sys.argv)
+    # app = TaurusApplication(sys.argv)
+    app.setOrganizationName("DESY")
     myWin = WorkSpace()
+    # myWin.init_taurus()
+    TaurusMainWindow.loadSettings(myWin)
+    # myWin.loadSettings()
     myWin.showMaximized() 
     app.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
     myWin.show()

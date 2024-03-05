@@ -4,6 +4,62 @@ import numpy as np
 import qimage2ndarray
 import copy
 
+def fromPlainText(self, plainText):
+    plainTextMacros = []
+    macroInfos = []
+    macroServerObj = self.getModelObj()
+    unknownMacros = []
+    for plainTextMacro in plainText.split('\n'):
+        # stripping the whitespace characters
+        plainTextMacro = plainTextMacro.strip()
+        # ignoring the empty lines
+        if len(plainTextMacro) == 0:
+            continue
+        # ignoring the commented lines
+        if plainTextMacro[0] in self.comment_characters:
+            continue
+        macroName = plainTextMacro.split()[0]
+        macroInfo = macroServerObj.getMacroInfoObj(macroName)
+        if macroInfo is None:
+            unknownMacros.append(macroName)
+        plainTextMacros.append(plainTextMacro)
+        macroInfos.append(macroInfo)
+    if len(unknownMacros) > 0:
+        msg = ("{0} macro(s) are not loaded in the "
+                "MacroServer".format(", ".join(unknownMacros)))
+        Qt.QMessageBox.warning(self, "Error while parsing the sequence",
+                                msg)
+        raise ValueError(msg)
+    newRoot = self.tree.fromPlainText(plainTextMacros, macroInfos)
+    return newRoot
+
+def submit_jobs(sequence_widget, scan_list = ["ascan gap01 0 10 20 1", "ascan mot01 0 5 10 1"]):
+    if len(scan_list)==0:
+        return
+    string = '\n'.join(scan_list)
+    self = sequence_widget
+    #@todo: reset macroComboBox to index 0
+    try:
+        root = self.fromPlainText(string)
+        self._sequenceModel.setRoot(root)
+        self.sequenceProxyModel.invalidateFilter()
+        self.tree.expandAll()
+        self.tree.expanded()
+        self.parametersProxyModel.setMacroIndex(None)
+        self.parametersProxyModel.invalidateFilter()
+
+        if not self._sequenceModel.isEmpty():
+            self.newSequenceAction.setEnabled(True)
+            self.saveSequenceAction.setEnabled(True)
+            self.playSequenceAction.setEnabled(True)
+    except:
+        self.tree.clearTree()
+        self.playSequenceAction.setEnabled(False)
+        self.newSequenceAction.setEnabled(False)
+        self.saveSequenceAction.setEnabled(False)
+        raise
+    self.currentMacroChanged.emit(None)
+
 def qt_image_to_array(img, share_memory=False):
     """ Creates a numpy array from a QImage.
 
@@ -127,6 +183,8 @@ class PandasModel(QtCore.QAbstractTableModel):
         return None
 
     def flags(self, index):
+        if self._data.shape[0]==0:
+            return
         cols = self._data.shape[1]
         checked_columns = [i for i in range(cols) if type(self._data.iloc[0, i])==np.bool_]        
         if not index.isValid():

@@ -5,9 +5,11 @@ import os
 # QtCore.qInstallMsgHandler(lambda *args: None)
 import pyqtgraph as pg
 import numpy as np
+import pandas as pd
 import copy
 import math
 from spatial_registration_module import rotatePoint
+from PyQt5.QtWidgets import  QAbstractItemView
 from PyQt5 import QtGui, QtCore, QtWidgets, uic
 from PyQt5.QtCore import pyqtSignal as Signal
 from PyQt5.QtCore import pyqtSlot as Slot
@@ -15,6 +17,8 @@ from pathlib import Path
 import qimage2ndarray
 import cv2
 import imreg_dft as ird
+from util import PandasModel, submit_jobs
+
 
 ui_file_folder = Path(__file__).parent.parent / 'ui'
 
@@ -181,8 +185,107 @@ class MdiFieldImreg_Wrapper(object):
         self.dft_reg_thread = QtCore.QThread()
         self.dft_reg_instance.moveToThread(self.dft_reg_thread)
         self.dft_reg_thread.started.connect(self.dft_reg_instance.perform_dft)
+        self.init_scan_list()
+        self.scaling_ft_along_height = 1
+        self.scaling_ft_along_width = 1
+        self.beam_pos_vp = [0,0]
         # self.setMinimumWidth(self._parent.dock_properties.size().width() - 40)
         # self.connect_slots()
+
+    def init_scan_list(self,table_view_widget_name='tableView_scan_list'):
+        data = pd.DataFrame.from_dict({'roi_pos_x':np.array([]),'roi_pos_y':np.array([]),'roi_width':np.array([]),'roi_height':np.array([]),'scan macro':[]}, dtype='str')
+        #data = data.astype({'roi_pos_x':'float', 'roi_pos_y': 'float', 'roi_width':'float', 'roi_height':'float','scan macro':'str'})
+        self.pandas_model_scan_list = PandasModel(data, tableviewer = getattr(self, table_view_widget_name), main_gui=self)
+        getattr(self, table_view_widget_name).setModel(self.pandas_model_scan_list)
+        getattr(self, table_view_widget_name).resizeColumnsToContents()
+        getattr(self, table_view_widget_name).setSelectionBehavior(QAbstractItemView.SelectRows)
+        getattr(self, table_view_widget_name).horizontalHeader().setStretchLastSection(True)        
+
+    def cal_scaling_factors(self):
+        frame_stage = [float(self.lineEdit_motor_range_along_width.text()), float(self.lineEdit_motor_range_along_height.text())]
+        frame_vp = [self.reference_image.width, self.reference_image.height]
+        self._cal_scaling_factors(frame_vp, frame_stage)
+        self.statusbar.showMessage(f'sf along width: {self.scaling_ft_along_width}; sf along height: {self.scaling_ft_along_height}')
+
+    def _cal_scaling_factors(self, target_frame_dim_vp, target_frame_dim_stage):
+        #target_frame_dim_vp: [width, height]
+        #target_frame_dim_stage: [width, height]
+        #return sf along width, sf along height
+        assert isinstance(target_frame_dim_vp, list) and len(target_frame_dim_vp)==2, 'the vp dimension info provided for target frame is not in a corret form, should be a list of two items'
+        width_viewport, height_viewport = target_frame_dim_vp
+        assert isinstance(target_frame_dim_stage, list) and len(target_frame_dim_stage)==2, 'the stage dimension info provided for target frame is not in a corret form, should be a list of two items'
+        width_stage, height_stage = target_frame_dim_stage
+
+        self.scaling_ft_along_width = width_stage/width_viewport #um per viewport unit
+        self.scaling_ft_along_height = height_stage/height_viewport #um per viewport unit
+
+        #return scaling_ft_along_width, scaling_ft_along_height
+
+    def generate_scan_macro(self,mot_name_along_width = 'samy', mot_name_along_height = 'samz'):
+        macro_name = self.lineEdit_macro_name.text()
+        roi_width, roi_height = self.roi_dft.size()
+        roi_x, roi_y = self.roi_dft.pos()
+        beam_pos_vp = eval(self.lineEdit_beampos_coordinates.text())
+        beam_pos_stage = eval(self.lineEdit_beampos_motors.text())
+        dwell_time = float(self.lineEdit_dwell_time.text())
+        pix_size = eval(self.lineEdit_beamsize.text()) # [hor, ver] in um
+
+        mot_start_pos_along_width = round((beam_pos_vp[0] - roi_x)*self.scaling_ft_along_width + beam_pos_stage[0],4)
+        mot_start_pos_along_height = round((beam_pos_vp[1] - roi_y)*self.scaling_ft_along_width + beam_pos_stage[1],4)
+        mot_end_pos_along_width = round(mot_start_pos_along_width + roi_width * self.scaling_ft_along_width,4)
+        mot_end_pos_along_height = round(mot_start_pos_along_height + roi_height * self.scaling_ft_along_height, 4)
+        steps_along_width = int(abs(mot_end_pos_along_width - mot_start_pos_along_width)/(pix_size[0]/1000))
+        steps_along_height = int(abs(mot_end_pos_along_height - mot_start_pos_along_height)/(pix_size[0]/1000))
+        macro_string = f"{macro_name} {mot_name_along_width} {mot_start_pos_along_width} {mot_end_pos_along_width} {steps_along_width} {mot_name_along_height} {mot_start_pos_along_height} {mot_end_pos_along_height} {steps_along_height} {dwell_time}"
+        new_row_in_table = [str(roi_x), str(roi_y), str(roi_width), str(roi_height), macro_string]
+        self.pandas_model_scan_list._data.loc[len(self.pandas_model_scan_list._data)] = new_row_in_table
+        self.pandas_model_scan_list.update_view()
+
+        return macro_string
+
+    def drop_selected_row(self):
+        selected_rows = self.tableView_scan_list.selectionModel().selectedRows()
+        if len(selected_rows)>0:
+            row = selected_rows[0].row()
+            self.pandas_model_scan_list._data.drop(row, inplace=True)
+            self.pandas_model_scan_list._data.reset_index(drop=True, inplace=True)
+            self.pandas_model_scan_list.update_view()
+
+    def update_dft_roi_on_click_table_row(self):
+        selected_rows = self.tableView_scan_list.selectionModel().selectedRows()
+        if len(selected_rows)>0:
+            row = selected_rows[0].row()
+            x0 = float(self.pandas_model_scan_list._data['roi_pos_x'][row])
+            y0 = float(self.pandas_model_scan_list._data['roi_pos_y'][row])
+            
+            width = float(self.pandas_model_scan_list._data['roi_width'][row])
+            height = float(self.pandas_model_scan_list._data['roi_height'][row])
+            x1 = x0 + width
+            y1 = y0 + height
+
+            self.field.rectangleSelected_sig.emit(x0, y0, x1, y1)
+
+
+
+    def update_beam_pos_vp(self):
+        if not hasattr(self, 'reference_image'):
+            self.statusbar.showMessage('You should pick the reference image first!')
+            return
+        beampos = []
+        loc = self.comboBox_ref_frame_pos.currentText()
+        if loc=='top left':
+            beampos = list(self.reference_image.pos())
+        elif loc=='top right':
+            beampos = np.array(list(self.reference_image.pos())) + [self.reference_image.width, 0]
+        elif loc=='bottom left':
+            beampos = np.array(list(self.reference_image.pos())) + [0, self.reference_image.height]
+        elif loc=='bottom right':
+            beampos = np.array(list(self.reference_image.pos())) + [self.reference_image.width, self.reference_image.height]
+        self.lineEdit_beampos_coordinates.setText(str([round(each, 4) for each in beampos]))
+
+    def submit_jobs_to_run(self):
+        jobs = list(self.pandas_model_scan_list._data['scan macro'])
+        submit_jobs(self.widget_sequencer, jobs)
 
     @QtCore.pyqtSlot(str)
     def update_status(self,string):
@@ -207,6 +310,12 @@ class MdiFieldImreg_Wrapper(object):
         self.pushButton_roi_on_reference.clicked.connect(self.extract_ref_sub_frame)
         self.dft_reg_instance.sig_dft_status.connect(self.update_status)
         self.dft_reg_instance.sig_dft_finished.connect(self.dft_imreg2)
+        self.comboBox_ref_frame_pos.currentIndexChanged.connect(self.update_beam_pos_vp)
+        self.pushButton_cal_sf.clicked.connect(self.cal_scaling_factors)
+        self.pushButton_add_row.clicked.connect(lambda:self.generate_scan_macro(mot_name_along_width='samy', mot_name_along_height='samz'))
+        self.pushButton_remove_row.clicked.connect(self.drop_selected_row)
+        self.tableView_scan_list.clicked.connect(self.update_dft_roi_on_click_table_row)
+        self.pushButton_submit_jobs.clicked.connect(self.submit_jobs_to_run)
 
     def cal_union_region_target_and_reference(self):
         x_min, x_max, y_min, y_max = 0, 0, 0, 0
@@ -265,6 +374,7 @@ class MdiFieldImreg_Wrapper(object):
             # // grayscale conversion
             # self.target_frame = np.dot(self.target_frame[..., :3], [0.299, 0.587, 0.114])
             self.ent_target.setText(current_loc["Path"])
+            self.statusbar.showMessage(f'Target image added: {current_loc["Path"]}')
         elif isinstance(current_loc, Group):
             dset = current_loc.get_dataset()
             self.target_attrs = dset.attrs
@@ -274,7 +384,9 @@ class MdiFieldImreg_Wrapper(object):
                                                             channel_spec=1)).astype(
                 float)
             self.ent_target.setText(dset.name)
+            self.statusbar.showMessage(f'Target image added: {dset.name}')
         else:
+            self.statusbar.showMessage(f'Fail to add target image')
             raise ValueError("Unexpected type: {}".format(type(current_loc)))
 
     def add_reference(self):
@@ -293,7 +405,9 @@ class MdiFieldImreg_Wrapper(object):
             # // grayscale conversion
             # self.reference_frame = np.dot(self.reference_frame[..., :3], [0.299, 0.587, 0.114])
             self.ent_ref.setText(current_loc["Path"])
+            self.statusbar.showMessage(f'Reference image added: {current_loc["Path"]}')
         else:
+            self.statusbar.showMessage(f'Fail to add reference image: {current_loc["Path"]}')
             raise ValueError("Unexpected type: {}".format(type(current_loc)))
 
     @Slot(float,float,float,float)
@@ -378,13 +492,15 @@ class MdiFieldImreg_Wrapper(object):
         assert hasattr(self, 'reference_frame'), "No reference frame has been registered!"
         self.reference_sub_outline = self.current_roi_dft_outline
         self.reference_sub_frame = self.roi_dft.getArrayRegion(self.reference_frame, self.reference_image)
+        self.statusbar.showMessage('Feature being extracted from reference')
 
     def extract_target_sub_frame(self):
         assert self.roi_dft_active, "No roi has been selected. Click and drag the mouse to make a roi selection first!"
         assert hasattr(self, 'target_frame'), "No target frame has been registered!"
         self.target_sub_frame = self.roi_dft.getArrayRegion(self.target_frame, self.target_image)
         self.target_sub_outline = self.current_roi_dft_outline
-        cv2.imwrite(r"C:\\Users\\qiucanro\\Downloads\\target_sub_frame.jpg", self.target_sub_frame)
+        self.statusbar.showMessage('Feature being extracted from target')
+        # cv2.imwrite(r"C:\\Users\\qiucanro\\Downloads\\target_sub_frame.jpg", self.target_sub_frame)
 
     def _update_outl(self):
         #outl should only reflect the width and the height of roi with the right rotation center
@@ -552,6 +668,7 @@ class MdiFieldImreg_Wrapper(object):
             # self.move_box.scale(self.scale_factor,center=[0.5,0.5])
             #output info
             self.textEdit.setPlainText('\n'.join(output_text))
+            self.field.removeItem(self.roi_dft)
             return vector_dict
 
 class MdiFieldImreg(QtWidgets.QDialog):

@@ -1,8 +1,8 @@
 <?xml version='1.0' encoding='WINDOWS-1252'?>
 <ImageMap>
   <Image0>
-    <Filename>sample1.png</Filename>
-    <Opacity>30</Opacity>
+    <Filename>scan_00064_Pt-La.tif</Filename>
+    <Opacity>100</Opacity>
     <Visible>TRUE</Visible>
     <Rotation>0.0</Rotation>
     <Particle>
@@ -13,102 +13,12 @@
       <noise_size>2</noise_size>
       <threshold>10</threshold>
     </Particle>
-    <Center>49799.0,49894.0</Center>
-    <Size>400.0,300.0</Size>
+    <Center>19.554194425072694,27.17587219510159</Center>
+    <Size>201.0,441.0</Size>
     <Focus>-0.5</Focus>
-    <BaseFolder>C:/Users/qiucanro/apps/imreg_dft/resources/examples</BaseFolder>
+    <BaseFolder>C:/Users/qiucanro/Downloads</BaseFolder>
   </Image0>
-  <Image1>
-    <Filename>sample3c.jpg</Filename>
-    <Opacity>51</Opacity>
-    <Visible>TRUE</Visible>
-    <Rotation>30.082237238096496</Rotation>
-    <Particle>
-      <diameter>51</diameter>
-      <minmass>1000</minmass>
-      <maxsize>111</maxsize>
-      <invert>False</invert>
-      <noise_size>2</noise_size>
-      <threshold>10</threshold>
-    </Particle>
-    <Center>49834.57991501024,49966.84919366673</Center>
-    <Size>498.3119038360892,373.7339278770669</Size>
-    <Focus>-0.5</Focus>
-    <BaseFolder>C:/Users/qiucanro/apps/imreg_dft/resources/examples</BaseFolder>
-  </Image1>
-  <Image2>
-    <Filename>Picture4.png</Filename>
-    <Opacity>40</Opacity>
-    <Visible>TRUE</Visible>
-    <Rotation>0.0</Rotation>
-    <Particle>
-      <diameter>51</diameter>
-      <minmass>1000</minmass>
-      <maxsize>111</maxsize>
-      <invert>False</invert>
-      <noise_size>2</noise_size>
-      <threshold>10</threshold>
-    </Particle>
-    <Center>49211.5,49339.0</Center>
-    <Size>387.0,276.0</Size>
-    <Focus>-0.5</Focus>
-    <BaseFolder>C:/Users/qiucanro/Desktop/img_reg/trackpy</BaseFolder>
-  </Image2>
-  <Image3>
-    <Filename>Picture5.png</Filename>
-    <Opacity>60</Opacity>
-    <Visible>TRUE</Visible>
-    <Rotation>0.0</Rotation>
-    <Particle>
-      <diameter>51</diameter>
-      <minmass>1000</minmass>
-      <maxsize>111</maxsize>
-      <invert>False</invert>
-      <noise_size>2</noise_size>
-      <threshold>10</threshold>
-    </Particle>
-    <Center>49290.0,49392.0</Center>
-    <Size>388.00000000001455,276.00000000001455</Size>
-    <Focus>-0.5</Focus>
-    <BaseFolder>C:/Users/qiucanro/Desktop/img_reg/trackpy</BaseFolder>
-  </Image3>
-  <Image4>
-    <Filename>Picture5.png</Filename>
-    <Opacity>60</Opacity>
-    <Visible>TRUE</Visible>
-    <Rotation>0.0</Rotation>
-    <Particle>
-      <diameter>51</diameter>
-      <minmass>1000</minmass>
-      <maxsize>111</maxsize>
-      <invert>False</invert>
-      <noise_size>2</noise_size>
-      <threshold>10</threshold>
-    </Particle>
-    <Center>49290.0,49392.0</Center>
-    <Size>388.00000000001455,276.00000000001455</Size>
-    <Focus>-0.5</Focus>
-    <BaseFolder>C:/Users/qiucanro/Desktop/img_reg/trackpy</BaseFolder>
-  </Image4>
-  <Image5>
-    <Filename>Picture4.png</Filename>
-    <Opacity>40</Opacity>
-    <Visible>TRUE</Visible>
-    <Rotation>0.0</Rotation>
-    <Particle>
-      <diameter>51</diameter>
-      <minmass>1000</minmass>
-      <maxsize>111</maxsize>
-      <invert>False</invert>
-      <noise_size>2</noise_size>
-      <threshold>10</threshold>
-    </Particle>
-    <Center>49211.5,49339.0</Center>
-    <Size>387.0,276.0</Size>
-    <Focus>-0.5</Focus>
-    <BaseFolder>C:/Users/qiucanro/Desktop/img_reg/trackpy</BaseFolder>
-  </Image5>
   <Data>
-    <ImageCount>6</ImageCount>
+    <ImageCount>1</ImageCount>
   </Data>
 </ImageMap>

@@ -465,6 +465,7 @@ class FieldViewBox(pg.ViewBox):
         if len(checked_list)>0:
             self._parent._clear_borders()
             self._parent.update_field_current = checked_list[0]
+            self._parent.hist.setImageItem(checked_list[0])
             self._parent._show_border()
             if self.mode in ['select', 'dft']:
                 self._parent.update_geo()

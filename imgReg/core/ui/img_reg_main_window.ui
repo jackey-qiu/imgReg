@@ -56,19 +56,6 @@
        <property name="spacing">
         <number>2</number>
        </property>
-       <item row="0" column="5">
-        <spacer name="horizontalSpacer">
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>40</width>
-           <height>20</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
        <item row="0" column="4">
         <widget class="QToolButton" name="bt_removeMenu">
          <property name="sizePolicy">
@@ -95,6 +82,50 @@
          <property name="icon">
           <iconset>
            <normaloff>icons/FileSystem/close_file_128x128.png</normaloff>icons/FileSystem/close_file_128x128.png</iconset>
+         </property>
+         <property name="iconSize">
+          <size>
+           <width>36</width>
+           <height>36</height>
+          </size>
+         </property>
+         <property name="popupMode">
+          <enum>QToolButton::InstantPopup</enum>
+         </property>
+         <property name="toolButtonStyle">
+          <enum>Qt::ToolButtonTextBesideIcon</enum>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="QToolButton" name="bt_alignMenu">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>123890</width>
+           <height>60</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>Align</string>
+         </property>
+         <property name="icon">
+          <iconset>
+           <normaloff>icons/Viewing/coordinates_128x128.png</normaloff>icons/Viewing/coordinates_128x128.png</iconset>
          </property>
          <property name="iconSize">
           <size>
@@ -154,49 +185,18 @@
          </property>
         </widget>
        </item>
-       <item row="0" column="1">
-        <widget class="QToolButton" name="bt_alignMenu">
-         <property name="enabled">
-          <bool>false</bool>
+       <item row="0" column="5">
+        <spacer name="horizontalSpacer">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
          </property>
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="minimumSize">
+         <property name="sizeHint" stdset="0">
           <size>
-           <width>0</width>
-           <height>0</height>
+           <width>40</width>
+           <height>20</height>
           </size>
          </property>
-         <property name="maximumSize">
-          <size>
-           <width>123890</width>
-           <height>60</height>
-          </size>
-         </property>
-         <property name="text">
-          <string>Align</string>
-         </property>
-         <property name="icon">
-          <iconset>
-           <normaloff>icons/Viewing/coordinates_128x128.png</normaloff>icons/Viewing/coordinates_128x128.png</iconset>
-         </property>
-         <property name="iconSize">
-          <size>
-           <width>36</width>
-           <height>36</height>
-          </size>
-         </property>
-         <property name="popupMode">
-          <enum>QToolButton::InstantPopup</enum>
-         </property>
-         <property name="toolButtonStyle">
-          <enum>Qt::ToolButtonTextBesideIcon</enum>
-         </property>
-        </widget>
+        </spacer>
        </item>
       </layout>
      </widget>
@@ -228,23 +228,106 @@
           <property name="frameShadow">
            <enum>QFrame::Raised</enum>
           </property>
-          <layout class="QHBoxLayout" name="horizontalLayout_2">
+          <layout class="QVBoxLayout" name="verticalLayout_17">
            <item>
-            <layout class="QGridLayout" name="grid_alignment"/>
-           </item>
-           <item>
-            <layout class="QGridLayout" name="graphics_layout">
-             <property name="spacing">
+            <widget class="QTabWidget" name="tabWidget_3">
+             <property name="currentIndex">
               <number>2</number>
              </property>
-            </layout>
+             <widget class="QWidget" name="tab_9">
+              <attribute name="title">
+               <string>ImageReg</string>
+              </attribute>
+              <layout class="QVBoxLayout" name="verticalLayout_22">
+               <item>
+                <widget class="QSplitter" name="splitter_2">
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                 <widget class="QFrame" name="frame_6">
+                  <property name="maximumSize">
+                   <size>
+                    <width>200</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="frameShape">
+                   <enum>QFrame::StyledPanel</enum>
+                  </property>
+                  <property name="frameShadow">
+                   <enum>QFrame::Raised</enum>
+                  </property>
+                  <layout class="QVBoxLayout" name="verticalLayout_20">
+                   <item>
+                    <layout class="QGridLayout" name="grid_alignment"/>
+                   </item>
+                  </layout>
+                 </widget>
+                 <widget class="QFrame" name="frame_7">
+                  <property name="frameShape">
+                   <enum>QFrame::StyledPanel</enum>
+                  </property>
+                  <property name="frameShadow">
+                   <enum>QFrame::Raised</enum>
+                  </property>
+                  <layout class="QVBoxLayout" name="verticalLayout_21">
+                   <item>
+                    <layout class="QGridLayout" name="graphics_layout">
+                     <property name="spacing">
+                      <number>2</number>
+                     </property>
+                    </layout>
+                   </item>
+                  </layout>
+                 </widget>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+             <widget class="QWidget" name="tab_10">
+              <attribute name="title">
+               <string>CameraStream</string>
+              </attribute>
+              <layout class="QVBoxLayout" name="verticalLayout_18">
+               <item>
+                <layout class="QGridLayout" name="gridLayout_cam"/>
+               </item>
+              </layout>
+             </widget>
+             <widget class="QWidget" name="tab_11">
+              <attribute name="title">
+               <string>Sequencer</string>
+              </attribute>
+              <layout class="QHBoxLayout" name="horizontalLayout_5">
+               <item>
+                <widget class="QFrame" name="frame_5">
+                 <property name="frameShape">
+                  <enum>QFrame::StyledPanel</enum>
+                 </property>
+                 <property name="frameShadow">
+                  <enum>QFrame::Raised</enum>
+                 </property>
+                 <layout class="QVBoxLayout" name="verticalLayout_19">
+                  <item>
+                   <widget class="TaurusSequencerWidget" name="widget_sequencer" native="true">
+                    <property name="enabled">
+                     <bool>true</bool>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+            </widget>
            </item>
           </layout>
          </widget>
          <widget class="QFrame" name="frame_2">
           <property name="maximumSize">
            <size>
-            <width>5000</width>
+            <width>600</width>
             <height>16777215</height>
            </size>
           </property>
@@ -316,7 +399,7 @@
               </font>
              </property>
              <property name="currentIndex">
-              <number>5</number>
+              <number>3</number>
              </property>
              <widget class="QWidget" name="tab">
               <attribute name="title">
@@ -856,7 +939,7 @@
                  <item row="0" column="1">
                   <widget class="QPushButton" name="bt_registration">
                    <property name="text">
-                    <string>Register</string>
+                    <string>register</string>
                    </property>
                   </widget>
                  </item>
@@ -884,13 +967,262 @@
                </item>
                <item>
                 <widget class="QLabel" name="label_13">
+                 <property name="font">
+                  <font>
+                   <weight>75</weight>
+                   <bold>true</bold>
+                  </font>
+                 </property>
                  <property name="text">
                   <string>DFT registration results</string>
                  </property>
                 </widget>
                </item>
                <item>
-                <widget class="QTextEdit" name="textEdit"/>
+                <widget class="QTextEdit" name="textEdit">
+                 <property name="maximumSize">
+                  <size>
+                   <width>16777215</width>
+                   <height>100</height>
+                  </size>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="Line" name="line_3">
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QLabel" name="label_49">
+                 <property name="font">
+                  <font>
+                   <weight>75</weight>
+                   <bold>true</bold>
+                  </font>
+                 </property>
+                 <property name="text">
+                  <string>Stage mapping info</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QFrame" name="frame_8">
+                 <property name="frameShape">
+                  <enum>QFrame::StyledPanel</enum>
+                 </property>
+                 <property name="frameShadow">
+                  <enum>QFrame::Raised</enum>
+                 </property>
+                 <layout class="QHBoxLayout" name="horizontalLayout_2">
+                  <item>
+                   <layout class="QGridLayout" name="gridLayout_11">
+                    <item row="2" column="0" colspan="3">
+                     <widget class="QLabel" name="label_47">
+                      <property name="text">
+                       <string>Horizontal size of reference image in mm ( image width)</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item row="3" column="3">
+                     <widget class="QLineEdit" name="lineEdit_motor_range_along_height">
+                      <property name="text">
+                       <string>1</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item row="3" column="0" colspan="3">
+                     <widget class="QLabel" name="label_48">
+                      <property name="text">
+                       <string>Vertical size of reference image in mm ( image height)</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item row="2" column="3">
+                     <widget class="QLineEdit" name="lineEdit_motor_range_along_width">
+                      <property name="text">
+                       <string>1</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item row="0" column="3">
+                     <widget class="QLineEdit" name="lineEdit_beampos_coordinates"/>
+                    </item>
+                    <item row="1" column="0" colspan="3">
+                     <widget class="QLabel" name="label_33">
+                      <property name="text">
+                       <string>Beam position wrt motor stages along (width, height)</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item row="0" column="0">
+                     <widget class="QLabel" name="label_28">
+                      <property name="text">
+                       <string>Beam position coordinates wrt viewport</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item row="0" column="1" colspan="2">
+                     <widget class="QComboBox" name="comboBox_ref_frame_pos">
+                      <item>
+                       <property name="text">
+                        <string>top left</string>
+                       </property>
+                      </item>
+                      <item>
+                       <property name="text">
+                        <string>top right</string>
+                       </property>
+                      </item>
+                      <item>
+                       <property name="text">
+                        <string>bottom left</string>
+                       </property>
+                      </item>
+                      <item>
+                       <property name="text">
+                        <string>bottom right</string>
+                       </property>
+                      </item>
+                     </widget>
+                    </item>
+                    <item row="1" column="3">
+                     <widget class="QLineEdit" name="lineEdit_beampos_motors">
+                      <property name="text">
+                       <string>[0,0]</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item row="4" column="3">
+                     <widget class="QPushButton" name="pushButton_cal_sf">
+                      <property name="text">
+                       <string>cal scaling factors</string>
+                      </property>
+                     </widget>
+                    </item>
+                   </layout>
+                  </item>
+                 </layout>
+                </widget>
+               </item>
+               <item>
+                <layout class="QHBoxLayout" name="horizontalLayout_8">
+                 <item>
+                  <widget class="QLabel" name="label_32">
+                   <property name="font">
+                    <font>
+                     <weight>75</weight>
+                     <bold>true</bold>
+                    </font>
+                   </property>
+                   <property name="text">
+                    <string>Scan macro list</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <spacer name="horizontalSpacer_6">
+                   <property name="orientation">
+                    <enum>Qt::Horizontal</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>40</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                  </spacer>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <layout class="QGridLayout" name="gridLayout_12">
+                 <item row="0" column="0">
+                  <widget class="QLabel" name="label_46">
+                   <property name="text">
+                    <string>scan macro</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="0" column="1">
+                  <widget class="QLineEdit" name="lineEdit_macro_name">
+                   <property name="text">
+                    <string>cmesh</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="0" column="2" colspan="2">
+                  <widget class="QLabel" name="label_50">
+                   <property name="text">
+                    <string>dwel time</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="0" column="4" colspan="2">
+                  <widget class="QLineEdit" name="lineEdit_dwell_time">
+                   <property name="text">
+                    <string>0.01</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="0" column="6">
+                  <widget class="QLabel" name="label_51">
+                   <property name="text">
+                    <string>pixel_size (um)</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="0" column="7">
+                  <widget class="QLineEdit" name="lineEdit_beamsize">
+                   <property name="text">
+                    <string>[0.25,0.25]</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <widget class="QTableView" name="tableView_scan_list"/>
+               </item>
+               <item>
+                <layout class="QHBoxLayout" name="horizontalLayout_7">
+                 <item>
+                  <spacer name="horizontalSpacer_7">
+                   <property name="orientation">
+                    <enum>Qt::Horizontal</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>40</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                  </spacer>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="pushButton_add_row">
+                   <property name="text">
+                    <string>append scan</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="pushButton_remove_row">
+                   <property name="text">
+                    <string>remove one</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="pushButton_submit_jobs">
+                   <property name="text">
+                    <string>push scans to sequence</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
                </item>
               </layout>
              </widget>
@@ -1119,6 +1451,13 @@
                   <enum>QFrame::Raised</enum>
                  </property>
                  <layout class="QVBoxLayout" name="verticalLayout_12">
+                  <item>
+                   <widget class="QPushButton" name="pushButton_camera">
+                    <property name="text">
+                     <string>Start or Stop camera streaming</string>
+                    </property>
+                   </widget>
+                  </item>
                   <item>
                    <widget class="QGroupBox" name="groupBox_2">
                     <property name="title">
@@ -1679,7 +2018,13 @@
   <customwidget>
    <class>TerminalWidget</class>
    <extends>QWidget</extends>
-   <header>terminal_widget.h</header>
+   <header>taurus_app.custom_widgets.terminal_widget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>TaurusSequencerWidget</class>
+   <extends>QWidget</extends>
+   <header>sardana.taurus.qt.qtgui.extra_macroexecutor.sequenceeditor.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

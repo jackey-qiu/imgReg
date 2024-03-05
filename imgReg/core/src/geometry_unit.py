@@ -219,6 +219,9 @@ class geometry_widget_wrapper(object):
         # translation offset due to rotation point difference (top left corder vs center)
         self.update_field_current.setPos(self.update_field_current.pos() - delta_t)
 
+        #update the width and height according to the roi
+        self.update_field_current.update_dim(self.move_box.size())
+
         self.attrs_geo['Outline'] = self._cal_outl_from_roi()
         #self.recalc_values()
         self._update_input_values()
