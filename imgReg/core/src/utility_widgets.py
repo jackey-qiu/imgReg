@@ -6,6 +6,7 @@ import time
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import pyqtSignal as Signal
+from taurus.qt.qtcore.configuration import BaseConfigurableClass
 
 def check_true(v):
     if isinstance(v, bool):
@@ -31,7 +32,77 @@ def check_true(v):
         else:
             return False
 
+class MoveMotorTool(QtWidgets.QAction, BaseConfigurableClass):
+    """
+    This tool provides a menu option to control the "Forced Read" period of
+    Plot data items that implement a `setForcedReadPeriod` method
+    (see, e.g. :meth:`TaurusTrendSet.setForcedReadPeriod`).
+    The force-read feature consists on forcing periodic attribute reads for
+    those attributes being plotted with a :class:`TaurusTrendSet` object.
+    This allows to force plotting periodical updates even for attributes
+    for which the taurus polling is not enabled.
+    Note that this is done at the widget level and therefore does not affect
+    the rate of arrival of events for other widgets connected to the same
+    attributes
+    This tool inserts an action with a spinbox and emits a `valueChanged`
+    signal whenever the value is changed.
+    The connection between the data items and this tool can be done manually
+    (by connecting to the `valueChanged` signal or automatically, if
+    :meth:`autoconnect()` is `True` (default). The autoconnection feature works
+    by discovering the compliant data items that share associated to the
+    plot_item.
+    This tool is implemented as an Action, and provides a method to attach it
+    to a :class:`pyqtgraph.PlotItem`
+    """
 
+    valueChanged = QtCore.pyqtSignal(int)
+
+    def __init__(
+        self,
+        parent=None,
+        text="move motor to clicked position",
+        properties = [],
+        door_device = None,
+        motor_marker_line_obj = None, 
+    ):
+        BaseConfigurableClass.__init__(self)
+        QtWidgets.QAction.__init__(self, text, parent)
+        tt = "move motor to a specific right-clicked position"
+        self.setToolTip(tt)
+        # self._show = True
+        self._properties = properties
+        self.door = door_device
+        self.motor_marker_line_obj = motor_marker_line_obj
+        self.motor_name = None
+        self.motor_pos = None
+
+        # register config properties
+        # self.registerConfigProperty(self.buffersize, self.setBufferSize, "buffersize")
+
+        # internal conections
+        self.triggered.connect(self._onTriggered)
+
+    def _onTriggered(self):
+        if self.door == None:
+            return
+        else:
+            # mot_name ='mot01'
+            # mot_pos = 1
+            self.door.runMacro(f'<macro name="mv"><paramrepeat name="motor_pos_list"><repeat nr="1">\
+                                 <param name="motor" value="{self.motor_name}"/><param name="pos" value="{self.motor_pos}"/>\
+                                 </repeat></paramrepeat></macro>')
+            # self.motor_marker_line_obj.setValue(self.motor_pos)
+
+    def buffersize(self):
+        return self._bufferSize
+
+    def attachToPlotItem(self, plot_item):
+        """Use this method to add this tool to a plot
+        :param plot_item: (PlotItem)
+        """
+        menu = plot_item.getViewBox().menu
+        menu.addAction(self)
+        self.plot_item = plot_item
 
 class CopyTable(QtWidgets.QTableWidget):
     """

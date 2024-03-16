@@ -9,6 +9,7 @@ import qimage2ndarray
 from pathlib import Path
 import numpy as np
 import pandas as pd
+from functools import partialmethod
 import pyqtgraph as pg
 import pyqtgraph.functions as fn
 from PyQt5 import QtGui, QtCore, QtWidgets, uic
@@ -23,7 +24,7 @@ from field_fiducial_markers_unit import FiducialMarkerWidget, FiducialMarkerWidg
 from camera_control_module import camera_control_panel
 from particle_tool import particle_widget_wrapper
 from field_tools import FieldViewBox
-from utility_widgets import check_true
+from utility_widgets import check_true, MoveMotorTool
 from importmodule import load_im_xml, load_align_xml
 from util import PandasModel, submit_jobs
 from taurus.qt.qtgui.container import TaurusMainWindow
@@ -257,13 +258,59 @@ class WorkSpace(MacroExecutionWindow, MdiFieldImreg_Wrapper, geometry_widget_wra
         #ui is a *.ui file from qt designer
         self._qDoor = None
         self.doorChanged.connect(self.onDoorChanged)
-        TaurusMainWindow.loadSettings(self)
+        # TaurusMainWindow.loadSettings(self)
         #sequencer slot
         self.widget_sequencer.doorChanged.connect(
         self.widget_sequencer.onDoorChanged)
         self.registerConfigDelegate(self.widget_sequencer)
         self.widget_sequencer.shortMessageEmitted.connect(
             self.onShortMessage)
+        self.createFileMenu()
+        self.createViewMenu()
+        self.createToolsMenu()
+        self.createTaurusMenu()
+        self.createHelpMenu()
+
+    def connect_mouseClick_event_for_online_monitor(self):
+        self.move_motor_action = None
+        self.motor_pos_marker = None
+        plots = list(self.widget_online_monitor._plots.keys())
+        plots_motor_as_x_axis = [plot for plot in plots if plot.x_axis['name'] != 'point_nb']
+        if len(plots_motor_as_x_axis)>1:
+            plots_motor_as_x_axis = plots_motor_as_x_axis[0:1]
+        # self.sig_proxy_test =pg.SignalProxy(list(self.widget_online_monitor._plots.keys())[0].scene().sigMouseClicked, slot = self.onMouseClicked_online_monitor)
+
+        def onMouseClicked_online_monitor(evt):
+
+            if evt[0].button()==1:#ignore left click
+                return
+            else:
+                if self.move_motor_action == None:
+                    self.motor_pos_marker = pg.InfiniteLine(angle=90, movable=True, pen=pg.mkPen('g', width=1, style=QtCore.Qt.SolidLine))
+                    self.motor_pos_marker.sigPositionChangeFinished.connect(self.move_motor_to_finishing_line)
+                    self.move_motor_action = MoveMotorTool(self, door_device=self.widget_online_monitor.manager.door, motor_marker_line_obj=self.motor_pos_marker)
+                    self.move_motor_action.attachToPlotItem(plot)
+                    self.widget_online_monitor.manager.bind_obj = self.motor_pos_marker
+                    self.widget_online_monitor.manager.setModel(Device(plot.x_axis['name'])._full_name+'/Position', key='motor')
+                    plot.addItem(self.motor_pos_marker)
+                #self.test_evt = evt
+                pos_scene = evt[0].pos()
+                pos_view = plot.vb.mapSceneToView(pos_scene)
+                mot_name = plot.x_axis['name']
+                self.move_motor_action.setText(f'move {mot_name} to {round(pos_view.x(),3)}?')
+                self.move_motor_action.motor_pos = round(pos_view.x(),3)
+                self.move_motor_action.motor_name = mot_name
+
+                self.statusbar.showMessage(f"click at pos: {pos_view}")
+        for plot in plots_motor_as_x_axis:
+            # self.widget_online_monitor.setModel('motor/motctrl01/1/Position',key='motor')
+            self.signal_proxy = pg.SignalProxy(plot.scene().sigMouseClicked, slot = onMouseClicked_online_monitor)
+
+    @Slot(object)
+    def move_motor_to_finishing_line(self, infinitline_obj):
+        self.widget_online_monitor.manager.door.runMacro(f'<macro name="mv"><paramrepeat name="motor_pos_list"><repeat nr="1">\
+                                <param name="motor" value="{self.move_motor_action.motor_name}"/><param name="pos" value="{infinitline_obj.value()}"/>\
+                                </repeat></paramrepeat></macro>')
 
     def setCustomMacroEditorPaths(self, customMacroEditorPaths):
         MacroExecutionWindow.setCustomMacroEditorPaths(
@@ -285,6 +332,8 @@ class WorkSpace(MacroExecutionWindow, MdiFieldImreg_Wrapper, geometry_widget_wra
         self._qDoor.macroStatusUpdated.connect(
             self.widget_sequencer.onMacroStatusUpdated)
         self.widget_sequencer.onDoorChanged(doorName)
+        self.widget_online_monitor.setModel(doorName)
+
 
     def setModel(self, model):
         MacroExecutionWindow.setModel(self, model)
@@ -328,6 +377,9 @@ class WorkSpace(MacroExecutionWindow, MdiFieldImreg_Wrapper, geometry_widget_wra
         """
         :return:
         """
+        #online monitor event
+        self.widget_online_monitor.manager.newPrepare.connect(self.connect_mouseClick_event_for_online_monitor)
+        self.widget_online_monitor.manager.newShortMessage.connect(self.statusbar.showMessage) 
         #save image buffer sig
         self.saveimagedb_sig.connect(self.imageBuffer.writeImgBackup)
         #tabwidget signal
@@ -2095,7 +2147,7 @@ class ImageBufferObject(pg.ImageItem):
 
     def update_dim(self, new_dims):
         self.width, self.height = new_dims
-        
+
     def setPixmap(self, pixmap):
         self.pixmap = pixmap
         self.update()
@@ -2423,8 +2475,9 @@ def main():
     app.setOrganizationName("DESY")
     myWin = WorkSpace()
     # myWin.init_taurus()
-    TaurusMainWindow.loadSettings(myWin)
+    # TaurusMainWindow.loadSettings(myWin)
     # myWin.loadSettings()
+    myWin.setWindowIcon(QtGui.QIcon('desy_small.png'))
     myWin.showMaximized() 
     app.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
     myWin.show()
