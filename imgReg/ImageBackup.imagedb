@@ -1,6 +1,42 @@
 <?xml version='1.0' encoding='WINDOWS-1252'?>
 <ImageMap>
   <Image0>
+    <Filename>CeO2_SiN_B_01 (1).tif</Filename>
+    <Opacity>100</Opacity>
+    <Visible>TRUE</Visible>
+    <Rotation>0.0</Rotation>
+    <Particle>
+      <diameter>51</diameter>
+      <minmass>1000</minmass>
+      <maxsize>111</maxsize>
+      <invert>False</invert>
+      <noise_size>2</noise_size>
+      <threshold>10</threshold>
+    </Particle>
+    <Center>48276.23715372151,47426.494905556065</Center>
+    <Size>1536.0,1103.0</Size>
+    <Focus>-0.5</Focus>
+    <BaseFolder>C:/Users/qiucanro/Downloads</BaseFolder>
+  </Image0>
+  <Image1>
+    <Filename>CeO2_SiN_B_02.tif</Filename>
+    <Opacity>100</Opacity>
+    <Visible>TRUE</Visible>
+    <Rotation>0.0</Rotation>
+    <Particle>
+      <diameter>51</diameter>
+      <minmass>1000</minmass>
+      <maxsize>111</maxsize>
+      <invert>False</invert>
+      <noise_size>2</noise_size>
+      <threshold>10</threshold>
+    </Particle>
+    <Center>49377.61199223283,49052.483928473855</Center>
+    <Size>1536.0,1103.0</Size>
+    <Focus>-0.5</Focus>
+    <BaseFolder>C:/Users/qiucanro/Downloads</BaseFolder>
+  </Image1>
+  <Image2>
     <Filename>scan_00064_Pt-La.tif</Filename>
     <Opacity>100</Opacity>
     <Visible>TRUE</Visible>
@@ -17,8 +53,8 @@
     <Size>201.0,441.0</Size>
     <Focus>-0.5</Focus>
     <BaseFolder>C:/Users/qiucanro/Downloads</BaseFolder>
-  </Image0>
+  </Image2>
   <Data>
-    <ImageCount>1</ImageCount>
+    <ImageCount>3</ImageCount>
   </Data>
 </ImageMap>

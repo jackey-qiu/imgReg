@@ -7,6 +7,7 @@ import time
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import pyqtSignal as Signal
 from taurus.qt.qtcore.configuration import BaseConfigurableClass
+import numpy as np
 
 def check_true(v):
     if isinstance(v, bool):
@@ -31,6 +32,166 @@ def check_true(v):
             return True
         else:
             return False
+
+class GaussianFitTool(QtWidgets.QMenu, BaseConfigurableClass):
+    """
+    This tool provides a menu option to control the "Forced Read" period of
+    Plot data items that implement a `setForcedReadPeriod` method
+    (see, e.g. :meth:`TaurusTrendSet.setForcedReadPeriod`).
+    The force-read feature consists on forcing periodic attribute reads for
+    those attributes being plotted with a :class:`TaurusTrendSet` object.
+    This allows to force plotting periodical updates even for attributes
+    for which the taurus polling is not enabled.
+    Note that this is done at the widget level and therefore does not affect
+    the rate of arrival of events for other widgets connected to the same
+    attributes
+    This tool inserts an action with a spinbox and emits a `valueChanged`
+    signal whenever the value is changed.
+    The connection between the data items and this tool can be done manually
+    (by connecting to the `valueChanged` signal or automatically, if
+    :meth:`autoconnect()` is `True` (default). The autoconnection feature works
+    by discovering the compliant data items that share associated to the
+    plot_item.
+    This tool is implemented as an Action, and provides a method to attach it
+    to a :class:`pyqtgraph.PlotItem`
+    """
+
+    valueChanged = QtCore.pyqtSignal(int)
+
+    def __init__(
+        self,
+        parent=None,
+        text="Gaussian Fit...",
+        properties = [],
+    ):
+        BaseConfigurableClass.__init__(self)
+        QtWidgets.QMenu.__init__(self, text, parent)
+        tt = "gaussian fit the plots"
+        self.setToolTip(tt)
+        # self._show = True
+        self._properties = properties
+
+        # register config properties
+        # self.registerConfigProperty(self.buffersize, self.setBufferSize, "buffersize")
+
+        # internal conections
+        # self.triggered.connect(self._onTriggered)
+
+    def add_actions(self, plot_widget, curve_items):
+
+        def _fit_gaussian(curve):
+            from lmfit import Minimizer, create_params, report_fit
+            from lmfit.lineshapes import gaussian, lorentzian, linear
+
+            x_data = plot_widget.x_axis['data'].contents()
+            cen_g = (max(x_data) - min(x_data))/2 + min(x_data)
+            wid_g = (max(x_data) - min(x_data))/5
+
+            def make_gau():
+                offset_rand = np.random.normal(scale = 0.1, size = x_data.size)
+                mu = (max(x_data) - min(x_data))/2 + min(x_data)
+                sig = (max(x_data) - min(x_data))/20
+                return 1.0 / (np.sqrt(2.0 * np.pi) * sig) * np.exp(-np.power((x_data - mu) / sig, 2.0) / 2) + curve.curve_data.contents() + offset_rand
+
+            def residual(pars, x, data):
+                model = gaussian(x, pars['amp_g'], pars['cen_g'], pars['wid_g']) + linear(x, pars['slope_l'], pars['intercept_l'])
+                return model - data
+            
+            # sim_y_data = make_gau()
+            pfit = create_params(amp_g=1, cen_g=cen_g, wid_g=wid_g, slope_l = 0, intercept_l = np.mean(curve.curve_data.contents()))
+            mini = Minimizer(residual, pfit, fcn_args=(x_data, curve.curve_data.contents()))
+            # mini = Minimizer(residual, pfit, fcn_args=(x_data, sim_y_data))
+            out = mini.leastsq()
+            last_curve.opts = curve.opts
+            last_curve.setData(x_data, curve.curve_data.contents()+out.residual)
+            # curve.setData(x_data, sim_y_data)
+            # curve.setData(x_data, curve.curve_data.contents())
+
+        # x_data = plot_widget.x_axis['data'].contents()
+        last_curve = curve_items[-1]
+        curve_items = curve_items[0:-1]
+        for curve in curve_items:
+            curve_name = curve.name()
+            action = QtWidgets.QAction(curve_name, self)
+            action.triggered.connect(lambda state, curve=curve:_fit_gaussian(curve))
+            self.addAction(action)
+
+    def attachToPlotItem(self, plot_item):
+        """Use this method to add this tool to a plot
+        :param plot_item: (PlotItem)
+        """
+        menu = plot_item.getViewBox().menu
+        menu.addMenu(self)
+
+class GaussianSimTool(QtWidgets.QMenu, BaseConfigurableClass):
+    """
+    This tool provides a menu option to control the "Forced Read" period of
+    Plot data items that implement a `setForcedReadPeriod` method
+    (see, e.g. :meth:`TaurusTrendSet.setForcedReadPeriod`).
+    The force-read feature consists on forcing periodic attribute reads for
+    those attributes being plotted with a :class:`TaurusTrendSet` object.
+    This allows to force plotting periodical updates even for attributes
+    for which the taurus polling is not enabled.
+    Note that this is done at the widget level and therefore does not affect
+    the rate of arrival of events for other widgets connected to the same
+    attributes
+    This tool inserts an action with a spinbox and emits a `valueChanged`
+    signal whenever the value is changed.
+    The connection between the data items and this tool can be done manually
+    (by connecting to the `valueChanged` signal or automatically, if
+    :meth:`autoconnect()` is `True` (default). The autoconnection feature works
+    by discovering the compliant data items that share associated to the
+    plot_item.
+    This tool is implemented as an Action, and provides a method to attach it
+    to a :class:`pyqtgraph.PlotItem`
+    """
+
+    valueChanged = QtCore.pyqtSignal(int)
+
+    def __init__(
+        self,
+        parent=None,
+        text="Make Gaussian shape...",
+        properties = [],
+    ):
+        BaseConfigurableClass.__init__(self)
+        QtWidgets.QMenu.__init__(self, text, parent)
+        tt = "gaussian fit the plots"
+        self.setToolTip(tt)
+        # self._show = True
+        self._properties = properties
+
+        # register config properties
+        # self.registerConfigProperty(self.buffersize, self.setBufferSize, "buffersize")
+
+        # internal conections
+        # self.triggered.connect(self._onTriggered)
+
+    def add_actions(self, plot_widget, curve_items):
+
+        x_data = plot_widget.x_axis['data'].contents()
+
+        def _make_gaussian(curve):
+            offset_rand = np.random.normal(scale = 0.1, size = x_data.size)
+            mu = (max(x_data) - min(x_data))/2 + min(x_data)
+            sig = (max(x_data) - min(x_data))/20
+            y_gaussian = 1.0 / (np.sqrt(2.0 * np.pi) * sig) * np.exp(-np.power((x_data - mu) / sig, 2.0) / 2) + curve.curve_data.contents()
+            last_curve.opts = curve.opts
+            last_curve.setData(x_data, y_gaussian + offset_rand)
+        last_curve = curve_items[-1]
+        curve_items = curve_items[0:-1]
+        for curve in curve_items:
+            curve_name = curve.name()
+            action = QtWidgets.QAction(curve_name, self)
+            action.triggered.connect(lambda state, curve=curve:_make_gaussian(curve))
+            self.addAction(action)
+
+    def attachToPlotItem(self, plot_item):
+        """Use this method to add this tool to a plot
+        :param plot_item: (PlotItem)
+        """
+        menu = plot_item.getViewBox().menu
+        menu.addMenu(self)
 
 class MoveMotorTool(QtWidgets.QAction, BaseConfigurableClass):
     """

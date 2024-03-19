@@ -232,7 +232,7 @@
            <item>
             <widget class="QTabWidget" name="tabWidget_3">
              <property name="currentIndex">
-              <number>2</number>
+              <number>3</number>
              </property>
              <widget class="QWidget" name="tab_9">
               <attribute name="title">
@@ -409,7 +409,7 @@
               </font>
              </property>
              <property name="currentIndex">
-              <number>0</number>
+              <number>6</number>
              </property>
              <widget class="QWidget" name="tab">
               <attribute name="title">
@@ -2028,19 +2028,19 @@
   <customwidget>
    <class>TerminalWidget</class>
    <extends>QWidget</extends>
-   <header>taurus_app.custom_widgets.terminal_widget.h</header>
+   <header>imgReg.core.src.terminal_widget.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>
    <class>TaurusSequencerWidget</class>
    <extends>QWidget</extends>
-   <header>sardana.taurus.qt.qtgui.extra_macroexecutor.sequenceeditor.h</header>
+   <header>imgReg.core.src.extra_macroexecutor.sequenceeditor.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>
    <class>ScanPlotWidget</class>
    <extends>QWidget</extends>
-   <header>sardana.taurus.qt.qtgui.extra_sardana.showscanonline</header>
+   <header>imgReg.core.src.showscanonline</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

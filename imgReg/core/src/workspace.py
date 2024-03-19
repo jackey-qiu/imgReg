@@ -24,12 +24,13 @@ from field_fiducial_markers_unit import FiducialMarkerWidget, FiducialMarkerWidg
 from camera_control_module import camera_control_panel
 from particle_tool import particle_widget_wrapper
 from field_tools import FieldViewBox
-from utility_widgets import check_true, MoveMotorTool
+from utility_widgets import check_true, MoveMotorTool, GaussianFitTool, GaussianSimTool
 from importmodule import load_im_xml, load_align_xml
 from util import PandasModel, submit_jobs
 from taurus.qt.qtgui.container import TaurusMainWindow
 from sardana.taurus.qt.qtgui.extra_macroexecutor.macroexecutor import MacroExecutionWindow, ParamEditorManager
 from taurus import Device
+from taurus.core.util.containers import ArrayBuffer
 
 setting_file = str(Path(__file__).parent.parent.parent / 'config' / 'appsettings.ini')
 ui_file_folder = Path(__file__).parent.parent / 'ui'
@@ -293,6 +294,12 @@ class WorkSpace(MacroExecutionWindow, MdiFieldImreg_Wrapper, geometry_widget_wra
                     self.widget_online_monitor.manager.bind_obj = self.motor_pos_marker
                     self.widget_online_monitor.manager.setModel(Device(plot.x_axis['name'])._full_name+'/Position', key='motor')
                     plot.addItem(self.motor_pos_marker)
+                    self.gaussian_fit_menu = GaussianFitTool(self)
+                    self.gaussian_fit_menu.attachToPlotItem(plot)
+                    self.gaussian_fit_menu.add_actions(plot, curves)
+                    self.gaussian_sim_menu = GaussianSimTool(self)
+                    self.gaussian_sim_menu.attachToPlotItem(plot)
+                    self.gaussian_sim_menu.add_actions(plot, curves)
                 #self.test_evt = evt
                 pos_scene = evt[0].pos()
                 pos_view = plot.vb.mapSceneToView(pos_scene)
@@ -304,6 +311,12 @@ class WorkSpace(MacroExecutionWindow, MdiFieldImreg_Wrapper, geometry_widget_wra
                 self.statusbar.showMessage(f"click at pos: {pos_view}")
         for plot in plots_motor_as_x_axis:
             # self.widget_online_monitor.setModel('motor/motctrl01/1/Position',key='motor')
+            curves = list(self.widget_online_monitor._plots[plot].values())
+            #now make a new plot for holding fit (eg gaussian or Lorenz) result
+            nb_points = curves[-1].curve_data.maxSize()
+            curve_item = plot.plot(name = 'fit')
+            curve_item.curve_data = ArrayBuffer(np.full(nb_points, np.nan))
+            curves.append(curve_item)
             self.signal_proxy = pg.SignalProxy(plot.scene().sigMouseClicked, slot = onMouseClicked_online_monitor)
 
     @Slot(object)
@@ -2453,6 +2466,8 @@ def main():
     from taurus.core.util import argparse
     from taurus.qt.qtgui.application import TaurusApplication
     sys.path.append(str(Path(__file__).parent))
+    sys.path.append(str(Path(__file__).parent.parent.parent.parent))
+    sys.path.append('C:\\Users\\qiucanro\\apps\\imgReg')
     import qdarkstyle
 
 
