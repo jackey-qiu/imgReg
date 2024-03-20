@@ -269,7 +269,7 @@ class WorkSpace(MacroExecutionWindow, MdiFieldImreg_Wrapper, geometry_widget_wra
         self.createFileMenu()
         self.createViewMenu()
         self.createToolsMenu()
-        self.createTaurusMenu()
+        # self.createTaurusMenu()
         self.createHelpMenu()
 
     def connect_mouseClick_event_for_online_monitor(self):
@@ -2462,15 +2462,13 @@ class TableWidgetDragRows(QtWidgets.QTableWidget):
                 self.menu.popup(QtGui.QCursor.pos())
 
 def main():
+    import qdarkstyle
     import sardana
     from taurus.core.util import argparse
     from taurus.qt.qtgui.application import TaurusApplication
     sys.path.append(str(Path(__file__).parent))
     sys.path.append(str(Path(__file__).parent.parent.parent.parent))
-    sys.path.append('C:\\Users\\qiucanro\\apps\\imgReg')
-    import qdarkstyle
-
-
+    
     parser = argparse.get_taurus_parser()
     parser.set_usage("%prog [options]")
     parser.set_description("Sardana macro sequencer.\n"
@@ -2490,9 +2488,9 @@ def main():
     app.setOrganizationName("DESY")
     myWin = WorkSpace()
     # myWin.init_taurus()
-    # TaurusMainWindow.loadSettings(myWin)
-    # myWin.loadSettings()
-    myWin.setWindowIcon(QtGui.QIcon('desy_small.png'))
+    TaurusMainWindow.loadSettings(myWin)
+    myWin.loadSettings()
+    myWin.setWindowIcon(QtGui.QIcon(str(Path(__file__).parent / 'desy_small.png')))
     myWin.showMaximized() 
     app.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
     myWin.show()

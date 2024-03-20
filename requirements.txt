@@ -31,7 +31,7 @@ matplotlib==3.8.2
 matplotlib-inline==0.1.6
 nest-asyncio==1.6.0
 numpy==1.26.2
-opencv-python==4.8.1.78
+opencv-python-headless
 packaging==23.2
 pandas==2.1.4
 parso==0.8.3
@@ -73,3 +73,4 @@ tzdata==2023.3
 uncertainties==3.1.7
 wcwidth==0.2.13
 zipp==3.17.0
+pytango==9.3.6
